@@ -87,9 +87,10 @@ End
 -/
 def check_freevars : Nat → List mlstring → sem_t → Bool
   | _, tvs, .Tvar tv => tvs.any (· == tv)
-  | dbmax, tvs, .Tapp ts _ => ts.all (check_freevars dbmax tvs)
+  | dbmax, tvs, .Tapp ts _ => ts.attach.all fun x => check_freevars dbmax tvs x.1
   | dbmax, _, .Tvar_db n => n < dbmax
-decreasing_by all_goals sorry
+termination_by _ _ t => sizeOf t
+decreasing_by have := List.sizeOf_lt_of_mem x.2; simp_all; omega
 
 /- HOL4:
 Definition check_freevars_ast_def: ...
@@ -97,10 +98,14 @@ End
 -/
 def check_freevars_ast : List mlstring → ast_t → Bool
   | tvs, .Atvar tv => tvs.any (· == tv)
-  | tvs, .Attup ts => ts.all (check_freevars_ast tvs)
+  | tvs, .Attup ts => ts.attach.all fun x => check_freevars_ast tvs x.1
   | tvs, .Atfun t1 t2 => check_freevars_ast tvs t1 && check_freevars_ast tvs t2
-  | tvs, .Atapp ts _ => ts.all (check_freevars_ast tvs)
-decreasing_by all_goals sorry
+  | tvs, .Atapp ts _ => ts.attach.all fun x => check_freevars_ast tvs x.1
+termination_by _ t => sizeOf t
+decreasing_by
+  all_goals first
+    | decreasing_tactic
+    | (have := List.sizeOf_lt_of_mem x.2; simp_all; omega)
 
 -- ============================================================
 -- Type substitution and de Bruijn operations
@@ -367,14 +372,18 @@ End
 -/
 def check_type_names (tenvT : tenv_abbrev) : ast_t → Bool
   | .Atvar _ => true
-  | .Attup ts => ts.all (check_type_names tenvT)
+  | .Attup ts => ts.attach.all fun x => check_type_names tenvT x.1
   | .Atfun t1 t2 => check_type_names tenvT t1 && check_type_names tenvT t2
   | .Atapp ts tn =>
     (match nsLookup tenvT tn with
      | some (tvs, _) => tvs.length == ts.length
      | none => false) &&
-    ts.all (check_type_names tenvT)
-decreasing_by all_goals sorry
+    ts.attach.all fun x => check_type_names tenvT x.1
+termination_by t => sizeOf t
+decreasing_by
+  all_goals first
+    | decreasing_tactic
+    | (have := List.sizeOf_lt_of_mem x.2; simp_all; omega)
 
 /- HOL4:
 Definition type_name_subst_def: ...
@@ -429,13 +438,17 @@ End
 -/
 def is_value : exp → Bool
   | .Lit _ => true
-  | .Con _ es => es.all is_value
+  | .Con _ es => es.attach.all fun x => is_value x.1
   | .Var _ => true
   | .Fun _ _ => true
   | .Tannot e _ => is_value e
   | .Lannot e _ => is_value e
   | _ => false
-decreasing_by all_goals sorry
+termination_by e => sizeOf e
+decreasing_by
+  all_goals first
+    | decreasing_tactic
+    | (have := List.sizeOf_lt_of_mem x.2; simp_all; omega)
 
 -- ============================================================
 -- Inductive relation: type_p / type_ps

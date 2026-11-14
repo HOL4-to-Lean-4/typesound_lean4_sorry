@@ -16,7 +16,7 @@ End
 -/
 inductive mlstring where
   | strlit : String → mlstring
-deriving Repr, BEq, Inhabited
+deriving Repr, BEq, ReflBEq, LawfulBEq, Inhabited
 
 /- HOL4:
 Definition implode_def:

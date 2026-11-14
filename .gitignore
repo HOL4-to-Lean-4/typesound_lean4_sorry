@@ -1,3 +1,5 @@
 .lake
 _site
 __pycache__/
+defsorry.tsv
+types.tsv

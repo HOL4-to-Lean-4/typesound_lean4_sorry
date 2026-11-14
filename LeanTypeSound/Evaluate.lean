@@ -67,6 +67,57 @@ End
   evaluate, evaluate_match, and evaluate_decs are mutually recursive
   with complex termination (clock-based). We use mutual partial def.
 -/
+theorem fix_clock_clock_le {ffi α : Type} {s s' : cml_state ffi} {p : cml_state ffi × α} {r : α}
+    (h : fix_clock s p = (s', r)) : s'.clock ≤ s.clock := by
+  obtain ⟨a, b⟩ := p
+  simp only [fix_clock, Prod.mk.injEq] at h
+  obtain ⟨rfl, rfl⟩ := h
+  simp only; split <;> omega
+
+theorem lex_le_lt {a a' b b' : Nat} (h1 : a' ≤ a) (h2 : b' < b) :
+    Prod.Lex (fun x1 x2 => x1 < x2) (fun x1 x2 => x1 < x2) (a', b') (a, b) := by
+  rcases Nat.lt_or_eq_of_le h1 with h | h
+  · exact Prod.Lex.left _ _ h
+  · subst h; exact Prod.Lex.right _ h2
+
+theorem lex_lt {a a' b b' : Nat} (h : a' < a) :
+    Prod.Lex (fun x1 x2 => x1 < x2) (fun x1 x2 => x1 < x2) (a', b') (a, b) :=
+  Prod.Lex.left _ _ h
+
+theorem do_log_exp {l : lop} {val_ : v} {e e' : exp}
+    (h : do_log l val_ e = some (.Exp e')) : e' = e := by
+  unfold do_log at h
+  split at h
+  · simp only [Option.some.injEq, exp_or_val.Exp.injEq] at h; exact h.symm
+  · split at h <;> simp at h
+
+theorem do_if_exp {val_ : v} {e1 e2 e : exp} (h : do_if val_ e1 e2 = some e) : e = e1 ∨ e = e2 := by
+  unfold do_if at h
+  split at h
+  · simp only [Option.some.injEq] at h; exact Or.inl h.symm
+  · split at h
+    · simp only [Option.some.injEq] at h; exact Or.inr h.symm
+    · simp at h
+
+theorem list_sizeOf_append {α : Type} [SizeOf α] (l1 l2 : List α) :
+    sizeOf (l1 ++ l2) + 1 = sizeOf l1 + sizeOf l2 := by
+  induction l1 with
+  | nil => simp; omega
+  | cons a l ih => simp; omega
+
+theorem list_sizeOf_reverse {α : Type} [SizeOf α] (l : List α) : sizeOf l.reverse = sizeOf l := by
+  induction l with
+  | nil => rfl
+  | cons a l ih =>
+    have := list_sizeOf_append l.reverse [a]
+    simp at this ⊢; omega
+
+theorem pat_sizeOf_pos (p : pat) : 0 < sizeOf p := by
+  cases p <;> simp <;> omega
+
+theorem list_sizeOf_pos {α : Type} [SizeOf α] (l : List α) : 0 < sizeOf l := by
+  cases l <;> simp <;> omega
+
 mutual
 def evaluate {ffi : Type} (st : cml_state ffi) (env : sem_env)
     (es : List exp) : cml_state ffi × result (List v) v :=
@@ -78,7 +129,7 @@ def evaluate {ffi : Type} (st : cml_state ffi) (env : sem_env)
     | (st', .Rval vs) => (st', .Rerr (.Rraise vs.head!))
     | (st', .Rerr e) => (st', .Rerr e)
   | [.Handle e pes] =>
-    match fix_clock st (evaluate st env [e]) with
+    match _hfc : fix_clock st (evaluate st env [e]) with
     | (st', .Rval v') => (st', .Rval v')
     | (st', .Rerr (.Rraise val_)) =>
       if can_pmatch_all env.c st'.refs (pes.map Prod.fst) val_ then
@@ -100,13 +151,13 @@ def evaluate {ffi : Type} (st : cml_state ffi) (env : sem_env)
     | some v' => (st, .Rval [v'])
   | [.Fun x e] => (st, .Rval [.Closure env x e])
   | [.App o_ es'] =>
-    match fix_clock st (evaluate st env es'.reverse) with
+    match _hfc : fix_clock st (evaluate st env es'.reverse) with
     | (st', .Rval vs) =>
       match getOpClass o_ with
       | .FunApp =>
         match do_opapp vs.reverse with
         | some (env', e) =>
-          if st'.clock == 0 then (st', .Rerr (.Rabort .Rtimeout_error))
+          if _hc : st'.clock == 0 then (st', .Rerr (.Rabort .Rtimeout_error))
           else evaluate (dec_clock st') env' [e]
         | none => (st', .Rerr (.Rabort .Rtype_error))
       | .Force =>
@@ -117,7 +168,7 @@ def evaluate {ffi : Type} (st : cml_state ffi) (env : sem_env)
         | .IsThunk .NotEvaluated f =>
           match do_opapp [f, .Conv none []] with
           | some (env', e) =>
-            if st'.clock == 0 then (st', .Rerr (.Rabort .Rtimeout_error))
+            if _hc : st'.clock == 0 then (st', .Rerr (.Rabort .Rtimeout_error))
             else
               match evaluate (dec_clock st') env' [e] with
               | (st2, .Rval vs2) =>
@@ -127,9 +178,9 @@ def evaluate {ffi : Type} (st : cml_state ffi) (env : sem_env)
               | (st2, .Rerr e) => (st2, .Rerr e)
           | none => (st', .Rerr (.Rabort .Rtype_error))
       | .EvalOp =>
-        match fix_clock st' (do_eval_res vs.reverse st') with
+        match _hfc1 : fix_clock st' (do_eval_res vs.reverse st') with
         | (st1, .Rval (env1, decs)) =>
-          if st1.clock == 0 then (st1, .Rerr (.Rabort .Rtimeout_error))
+          if _hc : st1.clock == 0 then (st1, .Rerr (.Rabort .Rtimeout_error))
           else
             match fix_clock (dec_clock st1)
                     (evaluate_decs (dec_clock st1) env1 decs) with
@@ -152,29 +203,29 @@ def evaluate {ffi : Type} (st : cml_state ffi) (env : sem_env)
           ({ st' with refs := refs, ffi := ffi_ }, list_result r)
     | (st', .Rerr e) => (st', .Rerr e)
   | [.Log l e1 e2] =>
-    match fix_clock st (evaluate st env [e1]) with
+    match _hfc : fix_clock st (evaluate st env [e1]) with
     | (st', .Rval v1) =>
-      match do_log l v1.head! e2 with
+      match _hlog : do_log l v1.head! e2 with
       | none => (st', .Rerr (.Rabort .Rtype_error))
       | some (.Exp e) => evaluate st' env [e]
       | some (.Val v') => (st', .Rval [v'])
     | (st', .Rerr e) => (st', .Rerr e)
   | [.If e1 e2 e3] =>
-    match fix_clock st (evaluate st env [e1]) with
+    match _hfc : fix_clock st (evaluate st env [e1]) with
     | (st', .Rval v') =>
-      match do_if v'.head! e2 e3 with
+      match _hif : do_if v'.head! e2 e3 with
       | none => (st', .Rerr (.Rabort .Rtype_error))
       | some e => evaluate st' env [e]
     | (st', .Rerr e) => (st', .Rerr e)
   | [.Mat e pes] =>
-    match fix_clock st (evaluate st env [e]) with
+    match _hfc : fix_clock st (evaluate st env [e]) with
     | (st', .Rval v') =>
       if can_pmatch_all env.c st'.refs (pes.map Prod.fst) v'.head! then
         evaluate_match st' env v'.head! pes bind_exn_v
       else (st', .Rerr (.Rabort .Rtype_error))
     | (st', .Rerr e) => (st', .Rerr e)
   | [.Let xo e1 e2] =>
-    match fix_clock st (evaluate st env [e1]) with
+    match _hfc : fix_clock st (evaluate st env [e1]) with
     | (st', .Rval v') =>
       evaluate st' (.mk (nsOptBind xo v'.head! env.v_) env.c) [e2]
     | (st', .Rerr e) => (st', .Rerr e)
@@ -185,14 +236,26 @@ def evaluate {ffi : Type} (st : cml_state ffi) (env : sem_env)
   | [.Tannot e _] => evaluate st env [e]
   | [.Lannot e _] => evaluate st env [e]
   | e1 :: e2 :: es' =>
-    match fix_clock st (evaluate st env [e1]) with
+    match _hfc : fix_clock st (evaluate st env [e1]) with
     | (st', .Rval v1) =>
       match evaluate st' env (e2 :: es') with
       | (st'', .Rval vs) => (st'', .Rval (v1.head! :: vs))
       | (st'', .Rerr e) => (st'', .Rerr e)
     | (st', .Rerr e) => (st', .Rerr e)
-  termination_by 0
-  decreasing_by all_goals sorry
+  termination_by (st.clock, sizeOf es)
+  decreasing_by
+    all_goals first
+      | (apply lex_le_lt (Nat.le_refl _); (try simp only [list_sizeOf_reverse]); simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := pat_sizeOf_pos ‹_›; simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := list_sizeOf_pos ‹List exp›; simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := list_sizeOf_pos ‹List dec›; simp <;> omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc); simp <;> omega)
+      | (apply lex_lt; have := fix_clock_clock_le _hfc; have := fix_clock_clock_le _hfc1;
+         simp [dec_clock] at *; omega)
+      | (apply lex_lt; have := fix_clock_clock_le _hfc; simp [dec_clock] at *; omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc); rw [do_log_exp _hlog]; simp <;> omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc)
+         rcases do_if_exp _hif with h | h <;> rw [h] <;> simp <;> omega)
 
 def evaluate_match {ffi : Type} (st : cml_state ffi) (env : sem_env)
     (val_ : v) (pes : List (pat × exp)) (err_v : v) :
@@ -207,8 +270,20 @@ def evaluate_match {ffi : Type} (st : cml_state ffi) (env : sem_env)
       | .Match env_v' =>
         evaluate st (.mk (nsAppend (alist_to_ns env_v') env.v_) env.c) [e]
     else (st, .Rerr (.Rabort .Rtype_error))
-  termination_by 0
-  decreasing_by all_goals sorry
+  termination_by (st.clock, sizeOf pes)
+  decreasing_by
+    all_goals first
+      | (apply lex_le_lt (Nat.le_refl _); (try simp only [list_sizeOf_reverse]); simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := pat_sizeOf_pos ‹_›; simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := list_sizeOf_pos ‹List exp›; simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := list_sizeOf_pos ‹List dec›; simp <;> omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc); simp <;> omega)
+      | (apply lex_lt; have := fix_clock_clock_le _hfc; have := fix_clock_clock_le _hfc1;
+         simp [dec_clock] at *; omega)
+      | (apply lex_lt; have := fix_clock_clock_le _hfc; simp [dec_clock] at *; omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc); rw [do_log_exp _hlog]; simp <;> omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc)
+         rcases do_if_exp _hif with h | h <;> rw [h] <;> simp <;> omega)
 
 def evaluate_decs {ffi : Type} (st : cml_state ffi) (env : sem_env)
     (ds : List dec) : cml_state ffi × result sem_env v :=
@@ -252,17 +327,29 @@ def evaluate_decs {ffi : Type} (st : cml_state ffi) (env : sem_env)
         | .Rval env' => .Rval (.mk (nsLift mn env'.v_) (nsLift mn env'.c))
         | .Rerr err => .Rerr err)
   | [.Dlocal lds ds'] =>
-    match fix_clock st (evaluate_decs st env lds) with
+    match _hfc : fix_clock st (evaluate_decs st env lds) with
     | (st1, .Rval env1) => evaluate_decs st1 (extend_dec_env env1 env) ds'
     | (st1, .Rerr e) => (st1, .Rerr e)
   | d1 :: d2 :: ds' =>
-    match fix_clock st (evaluate_decs st env [d1]) with
+    match _hfc : fix_clock st (evaluate_decs st env [d1]) with
     | (st1, .Rval env1) =>
       match evaluate_decs st1 (extend_dec_env env1 env) (d2 :: ds') with
       | (st2, r) => (st2, combine_dec_result env1 r)
     | (st1, .Rerr e) => (st1, .Rerr e)
-  termination_by 0
-  decreasing_by all_goals sorry
+  termination_by (st.clock, sizeOf ds)
+  decreasing_by
+    all_goals first
+      | (apply lex_le_lt (Nat.le_refl _); (try simp only [list_sizeOf_reverse]); simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := pat_sizeOf_pos ‹_›; simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := list_sizeOf_pos ‹List exp›; simp <;> omega)
+      | (apply lex_le_lt (Nat.le_refl _); have := list_sizeOf_pos ‹List dec›; simp <;> omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc); simp <;> omega)
+      | (apply lex_lt; have := fix_clock_clock_le _hfc; have := fix_clock_clock_le _hfc1;
+         simp [dec_clock] at *; omega)
+      | (apply lex_lt; have := fix_clock_clock_le _hfc; simp [dec_clock] at *; omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc); rw [do_log_exp _hlog]; simp <;> omega)
+      | (apply lex_le_lt (fix_clock_clock_le _hfc)
+         rcases do_if_exp _hif with h | h <;> rw [h] <;> simp <;> omega)
 end
 
 -- Theorem stubs

@@ -57,8 +57,12 @@ def nsSub_compute {m n v1 v2 : Type} [BEq m] [BEq n]
     «namespace» m n v1 → «namespace» m n v2 → Prop
   | .Bind e1V e1M, .Bind e2V e2M =>
     alistSub (fun k val1 val2 => R (mk_id path.reverse k) val1 val2) e1V e2V ∧
-    alistSub (fun k val1 val2 => nsSub_compute (k :: path) R val1 val2) e1M e2M
-  decreasing_by all_goals sorry
+    alistSub (fun k val1 val2 =>
+      if sizeOf val1 < sizeOf («namespace».Bind e1V e1M) then
+        nsSub_compute (k :: path) R val1 val2
+      else False) e1M e2M
+  termination_by e1 => sizeOf e1
+  decreasing_by assumption
 
 -- ============================================================
 -- Theorem stubs

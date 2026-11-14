@@ -1,0 +1,1351 @@
+{
+ "baseline": "de795c9f6d6515d6c99bdcbb0f8d32e31ee10af6",
+ "note": "statement = theorem text (comments removed) up to the := that starts its sorry proof",
+ "theorems": [
+  {
+   "file": "Evaluate.lean",
+   "name": "evaluate_clock",
+   "statement": "theorem evaluate_clock {ffi : Type} :\n    (∀ (s1 : cml_state ffi) (env : sem_env) (e : List exp) (s2 : cml_state ffi)\n      (r : result (List v) v),\n      evaluate s1 env e = (s2, r) → s2.clock ≤ s1.clock) ∧\n    (∀ (s1 : cml_state ffi) (env : sem_env) (val_ : v) (p : List (pat × exp)) (v' : v)\n      (s2 : cml_state ffi) (r : result (List v) v),\n      evaluate_match s1 env val_ p v' = (s2, r) → s2.clock ≤ s1.clock) ∧\n    (∀ (s1 : cml_state ffi) (env : sem_env) (ds : List dec) (s2 : cml_state ffi)\n      (r : result sem_env v),\n      evaluate_decs s1 env ds = (s2, r) → s2.clock ≤ s1.clock)"
+  },
+  {
+   "file": "Evaluate.lean",
+   "name": "fix_clock_evaluate",
+   "statement": "theorem fix_clock_evaluate {ffi : Type}\n    (s1 : cml_state ffi) (env : sem_env) (e : List exp) (ds : List dec) :\n    fix_clock s1 (evaluate s1 env e) = evaluate s1 env e ∧\n    fix_clock s1 (evaluate_decs s1 env ds) = evaluate_decs s1 env ds"
+  },
+  {
+   "file": "Evaluate.lean",
+   "name": "fix_clock_do_eval_res",
+   "statement": "theorem fix_clock_do_eval_res {ffi : Type}\n    (s : cml_state ffi) (vs : List v) :\n    fix_clock s (do_eval_res vs s) = do_eval_res vs s"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "io_events_mono_trans",
+   "statement": "theorem io_events_mono_trans {ffi : Type}\n    {ffi1 ffi2 ffi3 : ffi_state ffi} :\n    io_events_mono ffi1 ffi2 ∧ io_events_mono ffi2 ffi3 →\n    io_events_mono ffi1 ffi3"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "call_FFI_rel_io_events_mono",
+   "statement": "theorem call_FFI_rel_io_events_mono {ffi : Type}\n    {s1 s2 : ffi_state ffi} :\n    RTC call_FFI_rel s1 s2 → io_events_mono s1 s2"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "io_events_mono_refl",
+   "statement": "theorem io_events_mono_refl {ffi : Type}\n    (s : ffi_state ffi) :\n    io_events_mono s s"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "do_app_call_FFI_rel",
+   "statement": "theorem do_app_call_FFI_rel {ffi : Type}\n    {r : store v} {s : ffi_state ffi} {op : op} {vs : List v}\n    {r' : store v} {s' : ffi_state ffi} {res : result v v} :\n    do_app (r, s) op vs = some ((r', s'), res) →\n    RTC call_FFI_rel s s'"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "do_app_io_events_mono",
+   "statement": "theorem do_app_io_events_mono {ffi : Type}\n    {r : store v} {s : ffi_state ffi} {op : op} {vs : List v}\n    {r' : store v} {s' : ffi_state ffi} {res : result v v} :\n    do_app (r, s) op vs = some ((r', s'), res) →\n    io_events_mono s s'"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_cong",
+   "statement": "theorem is_clock_io_mono_cong {ffi α β : Type}\n    {f g : cml_state ffi → cml_state ffi × result α β}\n    {s t : cml_state ffi} :\n    s = t →\n    (∀ s', s'.eval_state_field = t.eval_state_field ∧ s'.refs = t.refs ∧ s'.ffi = t.ffi →\n      f s' = g s') →\n    (is_clock_io_mono f s ↔ is_clock_io_mono g t)"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_return",
+   "statement": "theorem is_clock_io_mono_return {ffi α β : Type}\n    (r : α) (s : cml_state ffi) :\n    is_clock_io_mono (fun s => (s, @result.Rval α β r)) s"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_err",
+   "statement": "theorem is_clock_io_mono_err {ffi α β : Type}\n    (r : error_result β) (s : cml_state ffi) :\n    is_clock_io_mono (fun s => (s, @result.Rerr α β r)) s"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "pair_CASE_eq_forall",
+   "statement": "theorem pair_CASE_eq_forall {α β : Type} {P : α → β → Prop} {x : α × β} :\n    (match x with | (a, b) => P a b) = (∀ a b, x = (a, b) → P a b)"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_bind",
+   "statement": "theorem is_clock_io_mono_bind {ffi α β γ δ : Type}\n    {f : cml_state ffi → cml_state ffi × result α β}\n    {g : result α β → cml_state ffi → cml_state ffi × result γ δ}\n    {s : cml_state ffi} :\n    is_clock_io_mono f s ∧\n    (∀ s' r, f s = (s', r) → is_clock_io_mono (g r) s') ∧\n    (∀ s', g (.Rerr (.Rabort .Rtimeout_error)) s' =\n      (s', .Rerr (.Rabort .Rtimeout_error))) →\n    is_clock_io_mono (fun s => match f s with | (s', r) => g r s') s"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_check",
+   "statement": "theorem is_clock_io_mono_check {ffi α β : Type}\n    {f : cml_state ffi → cml_state ffi × result α β}\n    {s : cml_state ffi} :\n    (¬ (s.clock = 0) →\n      is_clock_io_mono (fun s => f (adj_clock 1 0 s)) (dec_clock s)) →\n    is_clock_io_mono\n      (fun s => if s.clock = 0\n        then (s, .Rerr (.Rabort .Rtimeout_error))\n        else f s) s"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "dec_inc_clock",
+   "statement": "theorem dec_inc_clock {ffi : Type} (s : cml_state ffi) :\n    dec_clock (adj_clock 1 0 s) = s"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "do_app_refs_length",
+   "statement": "theorem do_app_refs_length {ffi : Type}\n    {refs_ffi : store v × ffi_state ffi} {op : op} {vs : List v}\n    {res : (store v × ffi_state ffi) × result v v} :\n    do_app refs_ffi op vs = some res →\n    refs_ffi.1.length ≤ res.1.1.length"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_do_app_simple",
+   "statement": "theorem is_clock_io_mono_do_app_simple {ffi : Type}\n    (xs : List v) (op : op) (st : cml_state ffi) :\n    is_clock_io_mono (fun st' =>\n      match do_app (st'.refs, st'.ffi) op xs with\n      | none => (st', .Rerr (.Rabort .Rtype_error))\n      | some ((refs, ffi_), r) =>\n        ({ st' with refs := refs, ffi := ffi_ }, list_result r)) st"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_evaluate",
+   "statement": "theorem is_clock_io_mono_evaluate {ffi : Type} :\n    (∀ (s : cml_state ffi) (env : sem_env) (es : List exp),\n      is_clock_io_mono (fun s => evaluate s env es) s) ∧\n    (∀ (s : cml_state ffi) (env : sem_env) (val_ : v) (pes : List (pat × exp)) (err_v : v),\n      is_clock_io_mono (fun s => evaluate_match s env val_ pes err_v) s) ∧\n    (∀ (s : cml_state ffi) (env : sem_env) (ds : List dec),\n      is_clock_io_mono (fun s => evaluate_decs s env ds) s)"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_evaluate_decs",
+   "statement": "theorem is_clock_io_mono_evaluate_decs {ffi : Type}\n    (s : cml_state ffi) (e : sem_env) (p : List dec) :\n    is_clock_io_mono (fun s => evaluate_decs s e p) s"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_extra",
+   "statement": "theorem is_clock_io_mono_extra {ffi α β : Type}\n    {f : cml_state ffi → cml_state ffi × result α β}\n    {s s' : cml_state ffi} {r : result α β} {extra : Nat} :\n    (∀ s, is_clock_io_mono f s) →\n    f s = (s', r) ∧ ¬ (r = .Rerr (.Rabort .Rtimeout_error)) →\n    f ({ s with clock := s.clock + extra }) =\n      ({ s' with clock := s'.clock + extra }, r)"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "list_result_eq_Rval",
+   "statement": "theorem list_result_eq_Rval {α β : Type}\n    {r : result α β} {r' : List α} :\n    list_result r = .Rval r' ↔ ∃ v, r' = [v] ∧ r = .Rval v"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "evaluate_length",
+   "statement": "theorem evaluate_length {ffi : Type} :\n    (∀ (s : cml_state ffi) (env : sem_env) (es : List exp) (s' : cml_state ffi) (r : List v),\n      evaluate s env es = (s', .Rval r) → r.length = es.length) ∧\n    (∀ (s : cml_state ffi) (env : sem_env) (val_ : v) (pes : List (pat × exp)) (err_v : v)\n      (s' : cml_state ffi) (r : List v),\n      evaluate_match s env val_ pes err_v = (s', .Rval r) → r.length = 1) ∧\n    (∀ (s : cml_state ffi) (env : sem_env) (ds : List dec) (s' : cml_state ffi) (r : sem_env),\n      evaluate_decs s env ds = (s', .Rval r) → True)"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_set_clock",
+   "statement": "theorem is_clock_io_mono_set_clock {ffi α β : Type}\n    {f : cml_state ffi → cml_state ffi × result α β}\n    {s s' : cml_state ffi} {r : result α β} {ck1 : Nat} :\n    is_clock_io_mono f s →\n    f s = (s', r) ∧ ¬ (r = .Rerr (.Rabort .Rtimeout_error)) →\n    ∃ ck0, f ({ s with clock := ck0 }) = ({ s' with clock := ck1 }, r)"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "is_clock_io_mono_minimal",
+   "statement": "theorem is_clock_io_mono_minimal {ffi α β : Type}\n    {f : cml_state ffi → cml_state ffi × result α β}\n    {s s' : cml_state ffi} {r : result α β} {k : Nat} :\n    is_clock_io_mono f s →\n    f s = (s', r) ∧ s'.clock = 0 ∧ r ≠ .Rerr (.Rabort .Rtimeout_error) ∧ s.clock > k →\n    ∃ s'', f ({ s with clock := k }) = (s'', .Rerr (.Rabort .Rtimeout_error)) ∧\n      io_events_mono s''.ffi s'.ffi"
+  },
+  {
+   "file": "EvaluateProps.lean",
+   "name": "can_pmatch_all_EVERY",
+   "statement": "theorem can_pmatch_all_EVERY\n    (envC : env_ctor) (refs : store v) (ps : List pat) (val_ : v) :\n    can_pmatch_all envC refs ps val_ = true ↔\n    ∀ p, p ∈ ps → pmatch envC refs p val_ [] ≠ .Match_type_error"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "CARD_IMAGE_ID_BIJ",
+   "statement": "theorem CARD_IMAGE_ID_BIJ {α : Type} {f : α → α} {s : Set α} :\n    FINITE s →\n    (∀ x, x ∈ s → f x ∈ s) ∧ CARD (IMAGE f s) = CARD s →\n    BIJ f s s"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "tlookup_bij_suff",
+   "statement": "theorem tlookup_bij_suff {names : Sptree Nat} :\n    (fun x => x ∈ Sptree.toList names) = Sptree.domain names →\n    BIJ (tlookup names) Set.univ Set.univ"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "tlookup_bij_iff",
+   "statement": "theorem tlookup_bij_iff {names : Sptree Nat} :\n    BIJ (tlookup names) Set.univ Set.univ ↔\n    (fun x => x ∈ Sptree.toList names) = Sptree.domain names"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "find_index_LESS_LENGTH",
+   "statement": "theorem find_index_LESS_LENGTH {α : Type} [BEq α] [LawfulBEq α]\n    (ls : List α) (n : α) (m i : Nat) :\n    find_index n ls m = some i → m ≤ i ∧ i < m + ls.length"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "ALOOKUP_find_index_SOME",
+   "statement": "theorem ALOOKUP_find_index_SOME {α β : Type} [BEq α] [LawfulBEq α] [Inhabited α] [Inhabited β]\n    {env : List (α × β)} {k : α} {val_ : β} :\n    ALOOKUP env k = some val_ →\n    ∃ i, find_index k (env.map Prod.fst) 0 = some i ∧\n      i < env.length ∧ val_ = (EL i env).2"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "IS_PREFIX_THM",
+   "statement": "theorem IS_PREFIX_THM {α : Type} [BEq α] [LawfulBEq α] [Inhabited α]\n    (l2 l1 : List α) :\n    IS_PREFIX l1 l2 = true ↔\n    l2.length ≤ l1.length ∧ ∀ n, n < l2.length → EL n l2 = EL n l1"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "FST_pair",
+   "statement": "theorem FST_pair {α β : Type} :\n    (fun (p : α × β) => p.1) = Prod.fst"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "LESS_1",
+   "statement": "theorem LESS_1 {x : Nat} :\n    x < 1 ↔ x = 0"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "map_some_eq",
+   "statement": "theorem map_some_eq {α : Type} (l1 l2 : List α) :\n    l1.map some = l2.map some ↔ l1 = l2"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "map_some_eq_append",
+   "statement": "theorem map_some_eq_append {α : Type} (l1 l2 l3 : List α) :\n    l1.map some ++ l2.map some = l3.map some ↔ l1 ++ l2 = l3"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "MAP_EQ_MAP_IMP",
+   "statement": "theorem MAP_EQ_MAP_IMP {α β : Type} (xs ys : List α) (f : α → β) :\n    (∀ x y, x ∈ xs ∧ y ∈ ys ∧ f x = f y → x = y) →\n    xs.map f = ys.map f → xs = ys"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "FDOM_FLOOKUP",
+   "statement": "theorem FDOM_FLOOKUP {α β : Type} {x : α} {f : Finmap α β} :\n    x ∈ Finmap.FDOM f ↔ ∃ val_, Finmap.FLOOKUP f x = some val_"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "DROP_EMPTY",
+   "statement": "theorem DROP_EMPTY {α : Type} (ls : List α) (n : Nat) :\n    DROP n ls = [] → n ≥ ls.length"
+  },
+  {
+   "file": "Misc.lean",
+   "name": "plus_0_I",
+   "statement": "theorem plus_0_I :\n    (fun (n : Nat) => 0 + n) = id"
+  },
+  {
+   "file": "Mlstring.lean",
+   "name": "explode_aux_thm",
+   "statement": "theorem explode_aux_thm (max n : Nat) (ls : String) :\n    n + max = ls.data.length →\n    explode_aux (.strlit ls) n max = HOL4.DROP n ls.data"
+  },
+  {
+   "file": "Mlstring.lean",
+   "name": "explode_thm",
+   "statement": "theorem explode_thm (ls : String) :\n    explode (.strlit ls) = ls.data"
+  },
+  {
+   "file": "Mlstring.lean",
+   "name": "explode_implode",
+   "statement": "theorem explode_implode (x : String) :\n    explode (implode x) = x.data"
+  },
+  {
+   "file": "Mlstring.lean",
+   "name": "implode_explode",
+   "statement": "theorem implode_explode (x : mlstring) :\n    implode (String.ofList (explode x)) = x"
+  },
+  {
+   "file": "Mlstring.lean",
+   "name": "explode_11",
+   "statement": "theorem explode_11 (s1 s2 : mlstring) :\n    explode s1 = explode s2 ↔ s1 = s2"
+  },
+  {
+   "file": "Mlstring.lean",
+   "name": "TOKENS_eq_tokens_aux",
+   "statement": "theorem TOKENS_eq_tokens_aux (P : Char → Bool) (ls : mlstring) (ss : List Char)\n    (n len : Nat) :\n    n + len = (explode ls).length →\n    (tokens_aux P ls ss n len).map explode =\n    match ss with\n    | h :: t =>\n      if len ≠ 0 ∧ ¬ P (HOL4.EL n (explode ls)) then\n        ((h :: t).reverse ++ (HOL4.TOKENS P (HOL4.DROP n (explode ls))).head!) ::\n          (HOL4.TOKENS P (HOL4.DROP n (explode ls))).tail\n      else if len ≠ 0 then\n        (h :: t).reverse :: HOL4.TOKENS P (HOL4.DROP n (explode ls))\n      else [(h :: t).reverse]\n    | [] => HOL4.TOKENS P (HOL4.DROP n (explode ls))"
+  },
+  {
+   "file": "Mlstring.lean",
+   "name": "TOKENS_eq_tokens",
+   "statement": "theorem TOKENS_eq_tokens (P : Char → Bool) (ls : mlstring) :\n    (tokens P ls).map explode = HOL4.TOKENS P (explode ls)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "mk_id_thm",
+   "statement": "theorem mk_id_thm {m n : Type} :\n    ∀ (id : cml_id m n), mk_id (id_to_mods id) (id_to_n id) = id"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "mk_id_surj",
+   "statement": "theorem mk_id_surj {m n : Type} :\n    ∀ (id : cml_id m n), ∃ (p : List m) (n_ : n), id = mk_id p n_"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsSub_mono",
+   "statement": "theorem nsSub_mono {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n]\n    {R1 R2 : cml_id m n → v1 → v2 → Prop}\n    {e1 : «namespace» m n v1} {e2 : «namespace» m n v2} :\n    (∀ (x : cml_id m n) (y : v1) (z : v2), R1 x y z → R2 x y z) →\n    (nsSub R1 e1 e2 → nsSub R2 e1 e2)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_mono",
+   "statement": "theorem nsAll2_mono {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n]\n    {R1 R2 : cml_id m n → v1 → v2 → Prop}\n    {e1 : «namespace» m n v1} {e2 : «namespace» m n v2} :\n    (∀ (x : cml_id m n) (y : v1) (z : v2), R1 x y z → R2 x y z) →\n    nsAll2 R1 e1 e2 → nsAll2 R2 e1 e2"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookup_nsEmpty",
+   "statement": "theorem nsLookup_nsEmpty {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (id : cml_id m n), nsLookup (nsEmpty : «namespace» m n v) id = none"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookupMod_nsEmpty",
+   "statement": "theorem nsLookupMod_nsEmpty {m n v : Type} [BEq m] [LawfulBEq m] :\n    ∀ (x : m) (y : List m), nsLookupMod (nsEmpty : «namespace» m n v) (x :: y) = none"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAppend_nsEmpty",
+   "statement": "theorem nsAppend_nsEmpty {m n v : Type} :\n    ∀ (env : «namespace» m n v),\n      nsAppend env nsEmpty = env ∧ nsAppend nsEmpty env = env"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "alist_to_ns_nil",
+   "statement": "theorem alist_to_ns_nil {m n v : Type} :\n    (alist_to_ns [] : «namespace» m n v) = nsEmpty"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsSub_nsEmpty",
+   "statement": "theorem nsSub_nsEmpty {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (r : cml_id m n → v1 → v2 → Prop) (env : «namespace» m n v2),\n      nsSub r (nsEmpty : «namespace» m n v1) env"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll_nsEmpty",
+   "statement": "theorem nsAll_nsEmpty {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (f : cml_id m n → v → Prop), nsAll f nsEmpty"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_nsEmpty",
+   "statement": "theorem nsAll2_nsEmpty {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (f : cml_id m n → v1 → v2 → Prop),\n      nsAll2 f (nsEmpty : «namespace» m n v1) (nsEmpty : «namespace» m n v2)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "alist_to_ns_cons",
+   "statement": "theorem alist_to_ns_cons {m n v : Type} :\n    ∀ (k : n) (val_ : v) (l : List (n × v)),\n      (alist_to_ns ((k, val_) :: l) : «namespace» m n v) = nsBind k val_ (alist_to_ns l)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAppend_nsBind",
+   "statement": "theorem nsAppend_nsBind {m n v : Type} :\n    ∀ (k : n) (val_ : v) (e1 e2 : «namespace» m n v),\n      nsAppend (nsBind k val_ e1) e2 = nsBind k val_ (nsAppend e1 e2)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAppend_assoc",
+   "statement": "theorem nsAppend_assoc {m n v : Type} :\n    ∀ (e1 e2 e3 : «namespace» m n v),\n      nsAppend e1 (nsAppend e2 e3) = nsAppend (nsAppend e1 e2) e3"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookup_nsBind",
+   "statement": "theorem nsLookup_nsBind {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    (∀ (n_ : n) (val_ : v) (e : «namespace» m n v),\n      nsLookup (nsBind n_ val_ e) (cml_id.Short n_) = some val_) ∧\n    (∀ (id_ : cml_id m n) (n_ : n) (val_ : v) (e : «namespace» m n v),\n      id_ ≠ cml_id.Short n_ → nsLookup (nsBind n_ val_ e) id_ = nsLookup e id_)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAppend_nsSing",
+   "statement": "theorem nsAppend_nsSing {m n v : Type} :\n    ∀ (n_ : n) (x : v) (e : «namespace» m n v),\n      nsAppend (nsSing n_ x) e = nsBind n_ x e"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookup_nsSing",
+   "statement": "theorem nsLookup_nsSing {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (n_ : n) (val_ : v) (id_ : cml_id m n),\n      nsLookup (nsSing n_ val_ : «namespace» m n v) id_ =\n        if id_ == cml_id.Short n_ then some val_ else none"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll_nsSing",
+   "statement": "theorem nsAll_nsSing {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v → Prop) (n_ : n) (val_ : v),\n      nsAll R (nsSing n_ val_ : «namespace» m n v) ↔ R (cml_id.Short n_) val_"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_nsSing",
+   "statement": "theorem nsAll2_nsSing {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop) (n1 : n) (v1_ : v1) (n2 : n) (v2_ : v2),\n      nsAll2 R (nsSing n1 v1_ : «namespace» m n v1) (nsSing n2 v2_ : «namespace» m n v2) ↔\n        n1 = n2 ∧ R (cml_id.Short n1) v1_ v2_"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsBind_11",
+   "statement": "theorem nsBind_11 {m n v : Type} :\n    ∀ (x : n) (y : v) (ns : «namespace» m n v) (x' : n) (y' : v) (ns' : «namespace» m n v),\n      nsBind x y ns = nsBind x' y' ns' ↔ x = x' ∧ y = y' ∧ ns = ns'"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "alist_to_ns_11",
+   "statement": "theorem alist_to_ns_11 {m n v : Type} :\n    ∀ (l1 l2 : List (n × v)),\n      (alist_to_ns l1 : «namespace» m n v) = alist_to_ns l2 ↔ l1 = l2"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookup_nsLift",
+   "statement": "theorem nsLookup_nsLift {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (mn : m) (e : «namespace» m n v) (id_ : cml_id m n),\n      nsLookup (nsLift mn e) id_ =\n        match id_ with\n        | cml_id.Long mn' id' => if mn == mn' then nsLookup e id' else none\n        | cml_id.Short _ => none"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookupMod_nsLift",
+   "statement": "theorem nsLookupMod_nsLift {m n v : Type} [BEq m] [LawfulBEq m] :\n    ∀ (mn : m) (e : «namespace» m n v) (path : List m),\n      nsLookupMod (nsLift mn e) path =\n        match path with\n        | [] => some (nsLift mn e)\n        | mn' :: path' => if mn == mn' then nsLookupMod e path' else none"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookup_nsAppend_some",
+   "statement": "theorem nsLookup_nsAppend_some {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (e1 : «namespace» m n v) (id_ : cml_id m n) (e2 : «namespace» m n v) (val_ : v),\n      nsLookup (nsAppend e1 e2) id_ = some val_ ↔\n        nsLookup e1 id_ = some val_ ∨\n        (nsLookup e1 id_ = none ∧ nsLookup e2 id_ = some val_ ∧\n         ∀ (p1 p2 : List m), p1 ≠ [] ∧ id_to_mods id_ = p1 ++ p2 →\n           nsLookupMod e1 p1 = none)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAppend_to_nsBindList",
+   "statement": "theorem nsAppend_to_nsBindList {m n v : Type} :\n    ∀ (l : List (n × v)) (e : «namespace» m n v),\n      nsAppend (alist_to_ns l) e = nsBindList l e"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookupMod_nsAppend_none",
+   "statement": "theorem nsLookupMod_nsAppend_none {m n v : Type} [BEq m] [LawfulBEq m] :\n    ∀ (e1 e2 : «namespace» m n v) (path : List m),\n      nsLookupMod (nsAppend e1 e2) path = none ↔\n        (nsLookupMod e1 path = none ∧\n         (nsLookupMod e2 path = none ∨\n          ∃ (p1 p2 : List m) (e3 : «namespace» m n v),\n            p1 ≠ [] ∧ path = p1 ++ p2 ∧ nsLookupMod e1 p1 = some e3))"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "eALL_T",
+   "statement": "theorem eALL_T {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (e : «namespace» m n v), nsAll (fun (_n : cml_id m n) (_x : v) => True) e"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookup_nsAll",
+   "statement": "theorem nsLookup_nsAll {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (env : «namespace» m n v) (x : cml_id m n) (P : cml_id m n → v → Prop) (val_ : v),\n      nsAll P env ∧ nsLookup env x = some val_ → P x val_"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll_nsAppend",
+   "statement": "theorem nsAll_nsAppend {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (f : cml_id m n → v → Prop) (e1 e2 : «namespace» m n v),\n      nsAll f e1 ∧ nsAll f e2 → nsAll f (nsAppend e1 e2)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll_alist_to_ns",
+   "statement": "theorem nsAll_alist_to_ns {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v → Prop) (l : List (n × v)),\n      (∀ (p : n × v), p ∈ l → R (cml_id.Short p.1) p.2) →\n        nsAll R (alist_to_ns l : «namespace» m n v)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll_nsLift",
+   "statement": "theorem nsAll_nsLift {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v → Prop) (mn : m) (e : «namespace» m n v),\n      nsAll R (nsLift mn e) ↔ nsAll (fun (id_ : cml_id m n) => R (cml_id.Long mn id_)) e"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll_nsAppend_left",
+   "statement": "theorem nsAll_nsAppend_left {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (P : cml_id m n → v → Prop) (n1 n2 : «namespace» m n v),\n      nsAll P (nsAppend n1 n2) → nsAll P n1"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsSub_conj",
+   "statement": "theorem nsSub_conj {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (P Q : cml_id m n → v1 → v2 → Prop) (e1 : «namespace» m n v1) (e2 : «namespace» m n v2),\n      nsSub (fun (id_ : cml_id m n) (x : v1) (y : v2) => P id_ x y ∧ Q id_ x y) e1 e2 ↔\n        nsSub P e1 e2 ∧ nsSub Q e1 e2"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsSub_refl",
+   "statement": "theorem nsSub_refl {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (P : cml_id m n → v → Prop) (R : cml_id m n → v → v → Prop),\n      (∀ (n_ : cml_id m n) (x : v), P n_ x → R n_ x x) →\n        ∀ (e : «namespace» m n v), nsAll P e → nsSub R e e"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsSub_nsBind",
+   "statement": "theorem nsSub_nsBind {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop) (x : n) (v1_ : v1) (v2_ : v2)\n      (e1 : «namespace» m n v1) (e2 : «namespace» m n v2),\n      R (cml_id.Short x) v1_ v2_ ∧ nsSub R e1 e2 →\n        nsSub R (nsBind x v1_ e1) (nsBind x v2_ e2)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsSub_nsAppend2",
+   "statement": "theorem nsSub_nsAppend2 {m n v_ : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v_ → v_ → Prop)\n      (e1 : «namespace» m n v_) (e2 : «namespace» m n v_) (e2' : «namespace» m n v_),\n      nsSub R e1 e1 ∧ nsSub R e2 e2' →\n        nsSub R (nsAppend e1 e2) (nsAppend e1 e2')"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "alist_rel_restr_thm",
+   "statement": "theorem alist_rel_restr_thm {k v1 v2 : Type} [BEq k] [LawfulBEq k] :\n    ∀ (R : k → v1 → v2 → Prop) (e1 : List (k × v1)) (e2 : List (k × v2)) (keys : List k),\n      alist_rel_restr R e1 e2 keys ↔\n        ∀ (k_ : k), MEM k_ keys = true →\n          ∃ (val1 : v1) (val2 : v2),\n            ALOOKUP e1 k_ = some val1 ∧ ALOOKUP e2 k_ = some val2 ∧ R k_ val1 val2"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "alistSub_cong",
+   "statement": "theorem alistSub_cong {k v1 v2 : Type} [BEq k] [LawfulBEq k] :\n    ∀ (l1 l1' : List (k × v1)) (l2 l2' : List (k × v2))\n      (R R' : k → v1 → v2 → Prop),\n      l1 = l1' ∧ l2 = l2' ∧\n        (∀ (n_ : k) (x : v1) (y : v2),\n          ALOOKUP l1' n_ = some x ∧ ALOOKUP l2' n_ = some y → R n_ x y = R' n_ x y) →\n        (alistSub R l1 l2 ↔ alistSub R' l1' l2')"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookup_FOLDR_nsLift",
+   "statement": "theorem nsLookup_FOLDR_nsLift {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (e : «namespace» m n v) (p : List m) (k : n),\n      nsLookup (FOLDR nsLift e p) (mk_id p k) = nsLookup e (cml_id.Short k)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookup_FOLDR_nsLift_some",
+   "statement": "theorem nsLookup_FOLDR_nsLift_some {m n v : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (e : «namespace» m n v) (p : List m) (id_ : cml_id m n) (val_ : v),\n      nsLookup (FOLDR nsLift e p) id_ = some val_ ↔\n        (p = [] ∧ nsLookup e id_ = some val_) ∨\n        (p ≠ [] ∧ ∃ (p2 : List m) (n_ : n),\n          id_ = mk_id (p ++ p2) n_ ∧ nsLookup e (mk_id p2 n_) = some val_)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsLookupMod_FOLDR_nsLift_none",
+   "statement": "theorem nsLookupMod_FOLDR_nsLift_none {m n v : Type} [BEq m] [LawfulBEq m] :\n    ∀ (e : «namespace» m n v) (p1 p2 : List m),\n      nsLookupMod (FOLDR nsLift e p1) p2 = none ↔\n        (IS_PREFIX p1 p2 = true ∨ IS_PREFIX p2 p1 = true) →\n          ∃ (p3 : List m), p2 = p1 ++ p3 ∧ nsLookupMod e p3 = none"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_conj",
+   "statement": "theorem nsAll2_conj {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (P Q : cml_id m n → v1 → v2 → Prop)\n      (e1 : «namespace» m n v1) (e2 : «namespace» m n v2),\n      nsAll2 (fun (id_ : cml_id m n) (x : v1) (y : v2) => P id_ x y ∧ Q id_ x y) e1 e2 ↔\n        nsAll2 P e1 e2 ∧ nsAll2 Q e1 e2"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_nsLookup2",
+   "statement": "theorem nsAll2_nsLookup2 {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop)\n      (e1 : «namespace» m n v1) (e2 : «namespace» m n v2) (n_ : cml_id m n) (v2_ : v2),\n      nsLookup e2 n_ = some v2_ ∧ nsAll2 R e1 e2 →\n        ∃ (v1_ : v1), nsLookup e1 n_ = some v1_ ∧ R n_ v1_ v2_"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_nsLookup_none",
+   "statement": "theorem nsAll2_nsLookup_none {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop)\n      (e1 : «namespace» m n v1) (e2 : «namespace» m n v2) (n_ : cml_id m n),\n      nsAll2 R e1 e2 →\n        (nsLookup e1 n_ = none ↔ nsLookup e2 n_ = none)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_nsBind",
+   "statement": "theorem nsAll2_nsBind {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop) (x : n) (v1_ : v1) (v2_ : v2)\n      (e1 : «namespace» m n v1) (e2 : «namespace» m n v2),\n      R (cml_id.Short x) v1_ v2_ ∧ nsAll2 R e1 e2 →\n        nsAll2 R (nsBind x v1_ e1) (nsBind x v2_ e2)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_nsBindList",
+   "statement": "theorem nsAll2_nsBindList {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop)\n      (l1 : List (n × v1)) (l2 : List (n × v2))\n      (e1 : «namespace» m n v1) (e2 : «namespace» m n v2),\n      LIST_REL (fun (p1 : n × v1) (p2 : n × v2) =>\n        p1.1 = p2.1 ∧ R (cml_id.Short p1.1) p1.2 p2.2) l1 l2 ∧\n      nsAll2 R e1 e2 →\n        nsAll2 R (nsBindList l1 e1) (nsBindList l2 e2)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_nsAppend",
+   "statement": "theorem nsAll2_nsAppend {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop)\n      (e1 : «namespace» m n v1) (e2 : «namespace» m n v2)\n      (e1' : «namespace» m n v1) (e2' : «namespace» m n v2),\n      nsAll2 R e1 e2 ∧ nsAll2 R e1' e2' →\n        nsAll2 R (nsAppend e1 e1') (nsAppend e2 e2')"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_alist_to_ns",
+   "statement": "theorem nsAll2_alist_to_ns {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop) (l1 : List (n × v1)) (l2 : List (n × v2)),\n      LIST_REL (fun (p1 : n × v1) (p2 : n × v2) =>\n        p1.1 = p2.1 ∧ R (cml_id.Short p1.1) p1.2 p2.2) l1 l2 →\n        nsAll2 R (alist_to_ns l1 : «namespace» m n v1) (alist_to_ns l2 : «namespace» m n v2)"
+  },
+  {
+   "file": "NamespaceProps.lean",
+   "name": "nsAll2_nsLift",
+   "statement": "theorem nsAll2_nsLift {m n v1 v2 : Type} [BEq m] [LawfulBEq m] [BEq n] [LawfulBEq n] :\n    ∀ (R : cml_id m n → v1 → v2 → Prop) (mn : m)\n      (e1 : «namespace» m n v1) (e2 : «namespace» m n v2),\n      nsAll2 R (nsLift mn e1) (nsLift mn e2) ↔\n        nsAll2 (fun (id_ : cml_id m n) => R (cml_id.Long mn id_)) e1 e2"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "with_same_v",
+   "statement": "theorem with_same_v (env : sem_env) :\n    sem_env.mk env.v_ env.c = env"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "unchanged_env",
+   "statement": "theorem unchanged_env (env : sem_env) :\n    sem_env.mk env.v_ env.c = env"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "with_same_clock",
+   "statement": "theorem with_same_clock {ffi : Type} (st : cml_state ffi) :\n    { st with clock := st.clock } = st"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "Boolv_11",
+   "statement": "theorem Boolv_11 (b1 b2 : Bool) :\n    Boolv b1 = Boolv b2 ↔ b1 = b2"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "extend_dec_env_assoc",
+   "statement": "theorem extend_dec_env_assoc (env1 env2 env3 : sem_env) :\n    extend_dec_env env1 (extend_dec_env env2 env3) =\n    extend_dec_env (extend_dec_env env1 env2) env3"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "pat_bindings_accum",
+   "statement": "theorem pat_bindings_accum :\n    (∀ (p : pat) (acc : List varN),\n      pat_bindings p acc = pat_bindings p [] ++ acc) ∧\n    (∀ (ps : List pat) (acc : List varN),\n      pats_bindings ps acc = pats_bindings ps [] ++ acc)"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "do_app_cases",
+   "statement": "theorem do_app_cases {ffi : Type} :\n    ∀ (s : List (store_v v)) (t : ffi_state ffi) (op_ : op) (vs : List v)\n      (st' : List (store_v v) × ffi_state ffi) (r : result v v),\n    do_app (s, t) op_ vs = some (st', r) ↔\n    (              \n      (∃ x1 x2 xs ys, op_ = .ListAppend ∧ vs = [x1, x2] ∧\n        v_to_list x1 = some xs ∧ v_to_list x2 = some ys ∧\n        st' = (s, t) ∧ r = .Rval (list_to_v (xs ++ ys))) ∨\n                 \n      (∃ sh n w, op_ = .Shift .W8 sh n ∧ vs = [.Litv (.Word8 w)] ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.Word8 (shift8_lookup sh w n)))) ∨\n                  \n      (∃ sh n w, op_ = .Shift .W64 sh n ∧ vs = [.Litv (.Word64 w)] ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.Word64 (shift64_lookup sh w n)))) ∨\n                 \n      (∃ v1 v2 b, op_ = .Equality ∧ vs = [v1, v2] ∧\n        do_eq v1 v2 = .Eq_val b ∧\n        st' = (s, t) ∧ r = .Rval (Boolv b)) ∨\n                 \n      (∃ b lnum val_ s', op_ = .Opassign ∧ vs = [.Loc b lnum, val_] ∧\n        store_assign lnum (.Refv val_) s = some s' ∧\n        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨\n              \n      (∃ val_ s' n, op_ = .Opref ∧ vs = [val_] ∧\n        store_alloc (.Refv val_) s = (s', n) ∧\n        st' = (s', t) ∧ r = .Rval (.Loc true n)) ∨\n                \n      (∃ b n val_, op_ = .Opderef ∧ vs = [.Loc b n] ∧\n        store_lookup n s = some (.Refv val_) ∧\n        st' = (s, t) ∧ r = .Rval val_) ∨\n                 \n      (∃ n w, op_ = .Aw8alloc ∧ vs = [.Litv (.IntLit n), .Litv (.Word8 w)] ∧\n        n < 0 ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ n w s' lnum, op_ = .Aw8alloc ∧ vs = [.Litv (.IntLit n), .Litv (.Word8 w)] ∧\n        ¬ n < 0 ∧\n        store_alloc (.W8array (REPLICATE n.natAbs w)) s = (s', lnum) ∧\n        st' = (s', t) ∧ r = .Rval (.Loc true lnum)) ∨\n               \n      (∃ b lnum i ws, op_ = .Aw8sub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        i < 0 ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b lnum i ws, op_ = .Aw8sub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        ¬ i < 0 ∧ i.natAbs ≥ ws.length ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b lnum i ws, op_ = .Aw8sub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ ws.length ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.Word8 (EL i.natAbs ws)))) ∨\n                      \n      (∃ b lnum i ws, op_ = .Aw8sub_unsafe ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ ws.length ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.Word8 (EL i.natAbs ws)))) ∨\n                  \n      (∃ b n ws, op_ = .Aw8length ∧ vs = [.Loc b n] ∧\n        store_lookup n s = some (.W8array ws) ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.IntLit (Int.ofNat ws.length)))) ∨\n                  \n      (∃ b lnum i w ws, op_ = .Aw8update ∧\n        vs = [.Loc b lnum, .Litv (.IntLit i), .Litv (.Word8 w)] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        i < 0 ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b lnum i w ws, op_ = .Aw8update ∧\n        vs = [.Loc b lnum, .Litv (.IntLit i), .Litv (.Word8 w)] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        ¬ i < 0 ∧ i.natAbs ≥ ws.length ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b lnum i w ws s', op_ = .Aw8update ∧\n        vs = [.Loc b lnum, .Litv (.IntLit i), .Litv (.Word8 w)] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ ws.length ∧\n        store_assign lnum (.W8array (LUPDATE w i.natAbs ws)) s = some s' ∧\n        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨\n                         \n      (∃ b lnum i w ws s', op_ = .Aw8update_unsafe ∧\n        vs = [.Loc b lnum, .Litv (.IntLit i), .Litv (.Word8 w)] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ ws.length ∧\n        store_assign lnum (.W8array (LUPDATE w i.natAbs ws)) s = some s' ∧\n        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨\n                   \n      (∃ strng off len, op_ = .CopyStrStr ∧\n        vs = [.Litv (.StrLit strng), .Litv (.IntLit off), .Litv (.IntLit len)] ∧\n        copy_array (explode strng, off) len none = none ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ strng off len cs, op_ = .CopyStrStr ∧\n        vs = [.Litv (.StrLit strng), .Litv (.IntLit off), .Litv (.IntLit len)] ∧\n        copy_array (explode strng, off) len none = some cs ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.StrLit (implode (String.mk cs))))) ∨\n                   \n      (∃ strng off len b dst dstoff ws, op_ = .CopyStrAw8 ∧\n        vs = [.Litv (.StrLit strng), .Litv (.IntLit off), .Litv (.IntLit len),\n              .Loc b dst, .Litv (.IntLit dstoff)] ∧\n        store_lookup dst s = some (.W8array ws) ∧\n        copy_array (explode strng, off) len (some (ws_to_chars ws, dstoff)) = none ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ strng off len b dst dstoff ws cs s', op_ = .CopyStrAw8 ∧\n        vs = [.Litv (.StrLit strng), .Litv (.IntLit off), .Litv (.IntLit len),\n              .Loc b dst, .Litv (.IntLit dstoff)] ∧\n        store_lookup dst s = some (.W8array ws) ∧\n        copy_array (explode strng, off) len (some (ws_to_chars ws, dstoff)) = some cs ∧\n        store_assign dst (.W8array (chars_to_ws cs)) s = some s' ∧\n        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨\n                   \n      (∃ b src off len ws, op_ = .CopyAw8Str ∧\n        vs = [.Loc b src, .Litv (.IntLit off), .Litv (.IntLit len)] ∧\n        store_lookup src s = some (.W8array ws) ∧\n        copy_array (ws, off) len none = none ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b src off len ws ws', op_ = .CopyAw8Str ∧\n        vs = [.Loc b src, .Litv (.IntLit off), .Litv (.IntLit len)] ∧\n        store_lookup src s = some (.W8array ws) ∧\n        copy_array (ws, off) len none = some ws' ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.StrLit (implode (String.mk (ws_to_chars ws')))))) ∨\n                   \n      (∃ b src off len b' dst dstoff ws ds, op_ = .CopyAw8Aw8 ∧\n        vs = [.Loc b src, .Litv (.IntLit off), .Litv (.IntLit len),\n              .Loc b' dst, .Litv (.IntLit dstoff)] ∧\n        store_lookup src s = some (.W8array ws) ∧\n        store_lookup dst s = some (.W8array ds) ∧\n        copy_array (ws, off) len (some (ds, dstoff)) = none ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b src off len b' dst dstoff ws ds ws' s', op_ = .CopyAw8Aw8 ∧\n        vs = [.Loc b src, .Litv (.IntLit off), .Litv (.IntLit len),\n              .Loc b' dst, .Litv (.IntLit dstoff)] ∧\n        store_lookup src s = some (.W8array ws) ∧\n        store_lookup dst s = some (.W8array ds) ∧\n        copy_array (ws, off) len (some (ds, dstoff)) = some ws' ∧\n        store_assign dst (.W8array ws') s = some s' ∧\n        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨\n                         \n      (∃ b dst str_arg bs new_bs s', op_ = .XorAw8Str_unsafe ∧\n        vs = [.Loc b dst, .Litv (.StrLit str_arg)] ∧\n        store_lookup dst s = some (.W8array bs) ∧\n        xor_bytes ((explode str_arg).map (fun c => n2w_8 (ORD c))) bs = some new_bs ∧\n        store_assign dst (.W8array new_bs) s = some s' ∧\n        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨\n                \n      (∃ val_ ls, op_ = .Implode ∧ vs = [val_] ∧\n        v_to_char_list val_ = some ls ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.StrLit (implode (String.mk ls))))) ∨\n                \n      (∃ strng, op_ = .Explode ∧ vs = [.Litv (.StrLit strng)] ∧\n        st' = (s, t) ∧\n        r = .Rval (list_to_v ((explode strng).map (fun c => .Litv (.Char c))))) ∨\n               \n      (∃ strng i, op_ = .Strsub ∧ vs = [.Litv (.StrLit strng), .Litv (.IntLit i)] ∧\n        i < 0 ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ strng i, op_ = .Strsub ∧ vs = [.Litv (.StrLit strng), .Litv (.IntLit i)] ∧\n        ¬ i < 0 ∧ i.natAbs ≥ strlen strng ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ strng i, op_ = .Strsub ∧ vs = [.Litv (.StrLit strng), .Litv (.IntLit i)] ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ strlen strng ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.Char (EL i.natAbs (explode strng))))) ∨\n               \n      (∃ strng, op_ = .Strlen ∧ vs = [.Litv (.StrLit strng)] ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.IntLit (Int.ofNat (strlen strng))))) ∨\n               \n      (∃ val_ vs' strng, op_ = .Strcat ∧ vs = [val_] ∧\n        v_to_list val_ = some vs' ∧\n        vs_to_string vs' = some strng ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.StrLit strng))) ∨\n                  \n      (∃ val_ vs', op_ = .VfromList ∧ vs = [val_] ∧\n        v_to_list val_ = some vs' ∧\n        st' = (s, t) ∧ r = .Rval (.Vectorv vs')) ∨\n                    \n      (∃ vs' i, op_ = .Vsub_unsafe ∧ vs = [.Vectorv vs', .Litv (.IntLit i)] ∧\n        (0 ≤ i ∧ i.natAbs < vs'.length) ∧\n        st' = (s, t) ∧ r = .Rval (EL i.natAbs vs')) ∨\n             \n      (∃ vs' i, op_ = .Vsub ∧ vs = [.Vectorv vs', .Litv (.IntLit i)] ∧\n        i < 0 ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ vs' i, op_ = .Vsub ∧ vs = [.Vectorv vs', .Litv (.IntLit i)] ∧\n        ¬ i < 0 ∧ i.natAbs ≥ vs'.length ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ vs' i, op_ = .Vsub ∧ vs = [.Vectorv vs', .Litv (.IntLit i)] ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧\n        st' = (s, t) ∧ r = .Rval (EL i.natAbs vs')) ∨\n                \n      (∃ vs', op_ = .Vlength ∧ vs = [.Vectorv vs'] ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.IntLit (Int.ofNat vs'.length)))) ∨\n               \n      (∃ n val_, op_ = .Aalloc ∧ vs = [.Litv (.IntLit n), val_] ∧\n        n < 0 ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ n val_ s' lnum, op_ = .Aalloc ∧ vs = [.Litv (.IntLit n), val_] ∧\n        ¬ n < 0 ∧\n        store_alloc (.Varray (REPLICATE n.natAbs val_)) s = (s', lnum) ∧\n        st' = (s', t) ∧ r = .Rval (.Loc true lnum)) ∨\n                    \n      (∃ s' lnum, op_ = .AallocEmpty ∧ vs = [.Conv none []] ∧\n        store_alloc (.Varray []) s = (s', lnum) ∧\n        st' = (s', t) ∧ r = .Rval (.Loc true lnum)) ∨\n                                        \n      (∃ s' lnum, op_ = .AallocFixed ∧\n        store_alloc (.Varray vs) s = (s', lnum) ∧\n        st' = (s', t) ∧ r = .Rval (.Loc true lnum)) ∨\n             \n      (∃ b lnum i vs', op_ = .Asub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧\n        store_lookup lnum s = some (.Varray vs') ∧\n        i < 0 ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b lnum i vs', op_ = .Asub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧\n        store_lookup lnum s = some (.Varray vs') ∧\n        ¬ i < 0 ∧ i.natAbs ≥ vs'.length ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b lnum i vs', op_ = .Asub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧\n        store_lookup lnum s = some (.Varray vs') ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧\n        st' = (s, t) ∧ r = .Rval (EL i.natAbs vs')) ∨\n                    \n      (∃ b lnum i vs', op_ = .Asub_unsafe ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧\n        store_lookup lnum s = some (.Varray vs') ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧\n        st' = (s, t) ∧ r = .Rval (EL i.natAbs vs')) ∨\n                \n      (∃ b n ws, op_ = .Alength ∧ vs = [.Loc b n] ∧\n        store_lookup n s = some (.Varray ws) ∧\n        st' = (s, t) ∧ r = .Rval (.Litv (.IntLit (Int.ofNat ws.length)))) ∨\n                \n      (∃ b lnum i val_ vs', op_ = .Aupdate ∧\n        vs = [.Loc b lnum, .Litv (.IntLit i), val_] ∧\n        store_lookup lnum s = some (.Varray vs') ∧\n        i < 0 ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b lnum i val_ vs', op_ = .Aupdate ∧\n        vs = [.Loc b lnum, .Litv (.IntLit i), val_] ∧\n        store_lookup lnum s = some (.Varray vs') ∧\n        ¬ i < 0 ∧ i.natAbs ≥ vs'.length ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨\n      (∃ b lnum i val_ vs' s', op_ = .Aupdate ∧\n        vs = [.Loc b lnum, .Litv (.IntLit i), val_] ∧\n        store_lookup lnum s = some (.Varray vs') ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧\n        store_assign lnum (.Varray (LUPDATE val_ i.natAbs vs')) s = some s' ∧\n        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨\n                       \n      (∃ b lnum i val_ vs' s', op_ = .Aupdate_unsafe ∧\n        vs = [.Loc b lnum, .Litv (.IntLit i), val_] ∧\n        store_lookup lnum s = some (.Varray vs') ∧\n        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧\n        store_assign lnum (.Varray (LUPDATE val_ i.natAbs vs')) s = some s' ∧\n        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨\n                 \n      (∃ i j, op_ = .ConfigGC ∧ vs = [.Litv (.IntLit i), .Litv (.IntLit j)] ∧\n        st' = (s, t) ∧ r = .Rval (.Conv none [])) ∨\n            \n      (∃ n conf b lnum ws t' ws' s', op_ = .FFI n ∧\n        vs = [.Litv (.StrLit conf), .Loc b lnum] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        call_FFI t (.ExtCall n) ((explode conf).map (fun c => n2w_8 (ORD c))) ws =\n          .FFI_return t' ws' ∧\n        store_assign lnum (.W8array ws') s = some s' ∧\n        st' = (s', t') ∧ r = .Rval (.Conv none [])) ∨\n      (∃ n conf b lnum ws outcome, op_ = .FFI n ∧\n        vs = [.Litv (.StrLit conf), .Loc b lnum] ∧\n        store_lookup lnum s = some (.W8array ws) ∧\n        call_FFI t (.ExtCall n) ((explode conf).map (fun c => n2w_8 (ORD c))) ws =\n          .FFI_final outcome ∧\n        st' = (s, t) ∧ r = .Rerr (.Rabort (.Rffi_error outcome))) ∨\n               \n      (∃ env gen id_, op_ = .Env_id ∧ vs = [.Env env (gen, id_)] ∧\n        st' = (s, t) ∧ r = .Rval (.Conv none [nat_to_v gen, nat_to_v id_])) ∨\n      (∃ gen id_, op_ = .Env_id ∧ vs = [.Conv none [gen, id_]] ∧\n        st' = (s, t) ∧ r = .Rval (.Conv none [gen, id_])) ∨\n                                                               \n      (∃ th_op, op_ = .ThunkOp th_op ∧\n        thunk_op_fun (s, t) th_op vs = some (st', r)) ∨\n                                  \n      (∃ a ty res, op_ = .Arith a ty ∧\n        EVERY (check_type ty) vs = true ∧\n        do_arith a ty vs = some (.inr res) ∧\n        st' = (s, t) ∧ r = .Rval res) ∨\n      (∃ a ty exn, op_ = .Arith a ty ∧\n        EVERY (check_type ty) vs = true ∧\n        do_arith a ty vs = some (.inl exn) ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise exn)) ∨\n               \n      (∃ ty1 ty2 val_ res, op_ = .FromTo ty1 ty2 ∧ vs = [val_] ∧\n        check_type ty1 val_ = true ∧\n        do_conversion val_ ty1 ty2 = some (.inr res) ∧\n        st' = (s, t) ∧ r = .Rval res) ∨\n      (∃ ty1 ty2 val_ exn, op_ = .FromTo ty1 ty2 ∧ vs = [val_] ∧\n        check_type ty1 val_ = true ∧\n        do_conversion val_ ty1 ty2 = some (.inl exn) ∧\n        st' = (s, t) ∧ r = .Rerr (.Rraise exn)) ∨\n             \n      (∃ test_ test_ty v1 v2 b, op_ = .Test test_ test_ty ∧ vs = [v1, v2] ∧\n        do_test test_ test_ty v1 v2 = .Eq_val b ∧\n        st' = (s, t) ∧ r = .Rval (Boolv b)))"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "build_rec_env_merge",
+   "statement": "theorem build_rec_env_merge\n    (funs : List (varN × varN × exp)) (env : sem_env)\n    (env' : «namespace» modN varN v) :\n    build_rec_env funs env env' =\n    nsAppend (alist_to_ns (funs.map (fun (f, _, _) => (f, v.Recclosure env funs f)))) env'"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "do_con_check_build_conv",
+   "statement": "theorem do_con_check_build_conv\n    (tenvC : env_ctor) (cn : Option (cml_id modN conN))\n    (vs : List v) (l : Nat) :\n    do_con_check tenvC cn l = true →\n    ∃ val, build_conv tenvC cn vs = some val"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "FV_pes_MAP",
+   "statement": "theorem FV_pes_MAP (pes : List (pat × exp)) :\n    FV_pes pes =\n    Set.sUnion (Set.image (fun pe => FV pe.2 \\ Set.image cml_id.Short (fun x => x ∈ pat_bindings pe.1 []))\n      (fun pe => pe ∈ pes))"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "FV_defs_MAP",
+   "statement": "theorem FV_defs_MAP (ls : List (varN × varN × exp)) :\n    FV_defs ls =\n    Set.sUnion (Set.image (fun fxe => FV fxe.2.2 \\ {cml_id.Short fxe.2.1})\n      (fun fxe => fxe ∈ ls))"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "concrete_v_list_thm",
+   "statement": "theorem concrete_v_list_thm (xs : List v) :\n    concrete_v_list xs = xs.all concrete_v"
+  },
+  {
+   "file": "SemanticPrimitivesProps.lean",
+   "name": "prim_type_cases",
+   "statement": "theorem prim_type_cases (ty : prim_type) :\n    ty = .BoolT ∨\n    ty = .IntT ∨\n    ty = .CharT ∨\n    ty = .StrT ∨\n    ty = .WordT .W8 ∨\n    ty = .WordT .W64 ∨\n    ty = .Float64T"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "fst_triple",
+   "statement": "theorem fst_triple {α β γ : Type} :\n    (fun ((x, _, _) : α × β × γ) => x) = (fun (p : α × β × γ) => p.1)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "sing_list",
+   "statement": "theorem sing_list {α : Type} :\n    ∀ (l : List α), l.length = 1 ↔ ∃ (x : α), l = [x]"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "EVERY_LIST_REL_local",
+   "statement": "theorem EVERY_LIST_REL_local {α β : Type} :\n    ∀ (f : α → β → Prop) (y : β) (l : List α),\n      (∀ (x : α), x ∈ l → f x y) ↔ LIST_REL (fun x y => f x y) l (REPLICATE l.length y)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "v_unchanged",
+   "statement": "theorem v_unchanged :\n    ∀ (tenv : type_env), { tenv with v := tenv.v } = tenv"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "check_dup_ctors_thm",
+   "statement": "theorem check_dup_ctors_thm :\n    ∀ (tvs : List tvarN) (tn : typeN) (condefs : List (conN × List ast_t)),\n      check_dup_ctors (tvs, tn, condefs) = ALL_DISTINCT (condefs.map Prod.fst)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "prim_canonical_values_thm",
+   "statement": "theorem prim_canonical_values_thm :\n    ∀ (tvs : Nat) (ctMap_ : ctMap) (tenvS : tenv_store) (val_ : v)\n      (envS : List (store_v v)) (ts : List sem_t) (t1 t2 t : sem_t),\n    (type_v tvs ctMap_ tenvS val_ Tint ∧ ctMap_ok ctMap_ →\n      ∃ (n : Int), val_ = .Litv (.IntLit n)) ∧\n    (type_v tvs ctMap_ tenvS val_ Tchar ∧ ctMap_ok ctMap_ →\n      ∃ (c : Char), val_ = .Litv (.Char c)) ∧\n    (type_v tvs ctMap_ tenvS val_ Tstring ∧ ctMap_ok ctMap_ →\n      ∃ (s : mlstring), val_ = .Litv (.StrLit s)) ∧\n    (type_v tvs ctMap_ tenvS val_ Tword8 ∧ ctMap_ok ctMap_ →\n      ∃ (n : word8), val_ = .Litv (.Word8 n)) ∧\n    (type_v tvs ctMap_ tenvS val_ Tword64 ∧ ctMap_ok ctMap_ →\n      ∃ (n : word64), val_ = .Litv (.Word64 n)) ∧\n    (type_v tvs ctMap_ tenvS val_ Tdouble ∧ ctMap_ok ctMap_ →\n      ∃ (n : word64), val_ = .Litv (.Float64 n)) ∧\n    (type_v tvs ctMap_ tenvS val_ (Ttup ts) ∧ ctMap_ok ctMap_ →\n      ∃ (vs : List v), val_ = .Conv none vs ∧ ts.length = vs.length) ∧\n    (type_v tvs ctMap_ tenvS val_ (Tfn t1 t2) ∧ ctMap_ok ctMap_ →\n      (∃ (env : sem_env) (n : varN) (e : exp), val_ = .Closure env n e) ∨\n      (∃ (env : sem_env) (funs : List (varN × varN × exp)) (n : varN),\n        val_ = .Recclosure env funs n)) ∧\n    (type_v tvs ctMap_ tenvS val_ (Tref t1) ∧ ctMap_ok ctMap_ ∧ type_s ctMap_ envS tenvS →\n      ∃ (n : Nat) (v2 : v),\n        val_ = .Loc true n ∧ store_lookup n envS = some (.Refv v2) ∧\n        type_v 0 ctMap_ tenvS v2 t1) ∧\n    (type_v tvs ctMap_ tenvS val_ Tword8array ∧ ctMap_ok ctMap_ ∧ type_s ctMap_ envS tenvS →\n      ∃ (n : Nat) (ws : List word8),\n        val_ = .Loc true n ∧ store_lookup n envS = some (.W8array ws) ∧\n        Finmap.FLOOKUP tenvS n = some .W8array_t) ∧\n    (type_v tvs ctMap_ tenvS val_ (Tarray t) ∧ ctMap_ok ctMap_ ∧ type_s ctMap_ envS tenvS →\n      ∃ (n : Nat) (vs : List v),\n        val_ = .Loc true n ∧ store_lookup n envS = some (.Varray vs) ∧\n        (∀ (v_ : v), v_ ∈ vs → type_v 0 ctMap_ tenvS v_ t) ∧\n        Finmap.FLOOKUP tenvS n = some (.Varray_t t)) ∧\n    (type_v tvs ctMap_ tenvS val_ (Tvector t) ∧ ctMap_ok ctMap_ →\n      ∃ (vs : List v),\n        val_ = .Vectorv vs ∧ (∀ (v_ : v), v_ ∈ vs → type_v tvs ctMap_ tenvS v_ t))"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "has_lists_v_to_list",
+   "statement": "theorem has_lists_v_to_list :\n    ∀ (ctMap_ : ctMap) (tvs : Nat) (tenvS : tenv_store) (t3 : sem_t) (val_ : v),\n      ctMap_ok ctMap_ ∧\n      ctMap_has_lists ctMap_ ∧\n      type_v tvs ctMap_ tenvS val_ (Tlist t3) →\n      ∃ (vs : List v),\n        v_to_list val_ = some vs ∧\n        (∀ (v_ : v), v_ ∈ vs → type_v tvs ctMap_ tenvS v_ t3) ∧\n        (t3 = Tchar → ∃ (vs' : List Char), v_to_char_list val_ = some vs') ∧\n        (t3 = Tstring → ∃ (str : mlstring), vs_to_string vs = some str)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "ctor_canonical_values_thm",
+   "statement": "theorem ctor_canonical_values_thm :\n    ∀ (tvs : Nat) (ctMap_ : ctMap) (tenvS : tenv_store) (val_ : v)\n      (t : sem_t) (ts : List sem_t) (ti : type_ident)\n      (stmp : stamp) (tvs' : List tvarN) (ts' : List sem_t),\n    (type_v tvs ctMap_ tenvS val_ Tbool ∧ ctMap_ok ctMap_ ∧ ctMap_has_bools ctMap_ →\n      ∃ (b : Bool), val_ = Boolv b) ∧\n    (type_v tvs ctMap_ tenvS val_ (Tlist t) ∧ ctMap_ok ctMap_ ∧ ctMap_has_lists ctMap_ →\n      ∃ (vs : List v),\n        v_to_list val_ = some vs ∧\n        (∀ (v_ : v), v_ ∈ vs → type_v tvs ctMap_ tenvS v_ t) ∧\n        (t = Tchar → ∃ (vs' : List Char), v_to_char_list val_ = some vs') ∧\n        (t = Tstring → ∃ (str : mlstring), vs_to_string vs = some str)) ∧\n    (type_v tvs ctMap_ tenvS val_ (.Tapp ts ti) ∧\n     ctMap_ok ctMap_ ∧\n     Finmap.FLOOKUP ctMap_ stmp = some (tvs', ts', ti) →\n      (∃ (cn : conN) (n : Nat) (vs : List v),\n        same_type stmp (.TypeStamp cn n) ∧ val_ = .Conv (some (.TypeStamp cn n)) vs) ∨\n      (∃ (n : Nat) (vs : List v),\n        same_type stmp (.ExnStamp n) ∧ val_ = .Conv (some (.ExnStamp n)) vs))"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "same_type_refl",
+   "statement": "theorem same_type_refl :\n    ∀ (t : stamp), same_type t t"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "eq_same_type",
+   "statement": "theorem eq_same_type :\n    (∀ (v1 v2 : v) (tvs : Nat) (ctMap_ : ctMap) (cns : env_ctor) (tenvS : tenv_store) (t : sem_t),\n      ctMap_ok ctMap_ ∧\n      type_v tvs ctMap_ tenvS v1 t ∧\n      type_v tvs ctMap_ tenvS v2 t →\n      do_eq v1 v2 ≠ .Eq_type_error) ∧\n    (∀ (vs1 vs2 : List v) (tvs : Nat) (ctMap_ : ctMap) (cns : env_ctor) (tenvS : tenv_store) (ts : List sem_t),\n      ctMap_ok ctMap_ ∧\n      LIST_REL (type_v tvs ctMap_ tenvS) vs1 ts ∧\n      LIST_REL (type_v tvs ctMap_ tenvS) vs2 ts →\n      do_eq_list vs1 vs2 ≠ .Eq_type_error)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_env_conv_thm",
+   "statement": "theorem type_env_conv_thm :\n    ∀ (ctMap_ : ctMap) (envC : env_ctor) (tenvC : tenv_ctor),\n      nsAll2 (type_ctor ctMap_) envC tenvC →\n      ∀ (cn : cml_id modN conN) (tvs' : List tvarN) (ts : List sem_t) (tn : type_ident) (ti : type_ident),\n        (nsLookup tenvC cn = some (tvs', ts, tn) →\n          ∃ (cn' : conN) (stmp : stamp),\n            nsLookup envC cn = some (ts.length, stmp) ∧\n            Finmap.FLOOKUP ctMap_ stmp = some (tvs', ts, tn)) ∧\n        (nsLookup tenvC cn = none → nsLookup envC cn = none)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_funs_fst",
+   "statement": "theorem type_funs_fst :\n    ∀ (tenv : type_env) (tenvE : tenv_val_exp) (funs : List (varN × varN × exp))\n      (tenv' : List (varN × sem_t)),\n      type_funs tenv tenvE funs tenv' →\n      funs.map Prod.fst = tenv'.map Prod.fst"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_recfun_env_help",
+   "statement": "theorem type_recfun_env_help :\n    ∀ (fn_ : varN) (funs funs' : List (varN × varN × exp)) (ctMap_ : ctMap)\n      (tenv : type_env) (bindings : List (varN × sem_t)) (tenvE : tenv_val_exp)\n      (env : sem_env) (tenvS : tenv_store) (tvs : Nat) (bindings' : List (varN × sem_t)),\n      ALL_DISTINCT (funs'.map Prod.fst) ∧\n      tenv_ok tenv ∧\n      type_all_env ctMap_ tenvS env { tenv with v := add_tenvE tenvE tenv.v } ∧\n      tenv_val_exp_ok tenvE ∧\n      num_tvs tenvE = 0 ∧\n      (∀ (fn_ : varN) (t : sem_t), ALOOKUP bindings fn_ = some t → ALOOKUP bindings' fn_ = some t) ∧\n      type_funs tenv (bind_var_list 0 bindings' (bind_tvar tvs tenvE)) funs' bindings' ∧\n      type_funs tenv (bind_var_list 0 bindings' (bind_tvar tvs tenvE)) funs bindings →\n      LIST_REL (fun (p1 : varN × v) (p2 : varN × Nat × sem_t) =>\n                  p1.1 = p2.1 ∧ type_v p2.2.1 ctMap_ tenvS p1.2 p2.2.2)\n        (funs.map (fun (p : varN × varN × exp) => (p.1, v.Recclosure env funs' p.1)))\n        (bindings.map (fun (p : varN × sem_t) => (p.1, tvs, p.2)))"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_recfun_env",
+   "statement": "theorem type_recfun_env :\n    ∀ (funs : List (varN × varN × exp)) (ctMap_ : ctMap) (tenvS : tenv_store)\n      (tvs : Nat) (tenv : type_env) (tenvE : tenv_val_exp) (env : sem_env)\n      (bindings : List (varN × sem_t)),\n      tenv_ok tenv ∧\n      type_all_env ctMap_ tenvS env { tenv with v := add_tenvE tenvE tenv.v } ∧\n      tenv_val_exp_ok tenvE ∧\n      num_tvs tenvE = 0 ∧\n      type_funs tenv (bind_var_list 0 bindings (bind_tvar tvs tenvE)) funs bindings ∧\n      ALL_DISTINCT (funs.map Prod.fst) →\n      LIST_REL (fun (p1 : varN × v) (p2 : varN × Nat × sem_t) =>\n                  p1.1 = p2.1 ∧ type_v p2.2.1 ctMap_ tenvS p1.2 p2.2.2)\n        (funs.map (fun (p : varN × varN × exp) => (p.1, v.Recclosure env funs p.1)))\n        (bindings.map (fun (p : varN × sem_t) => (p.1, tvs, p.2)))"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_v_exn",
+   "statement": "theorem type_v_exn :\n    ∀ (tvs : Nat) (cenv : ctMap) (senv : tenv_store),\n      ctMap_has_exns cenv →\n      type_v tvs cenv senv (.Conv (some chr_stamp) []) Texn ∧\n      type_v tvs cenv senv (.Conv (some subscript_stamp) []) Texn ∧\n      type_v tvs cenv senv (.Conv (some bind_stamp) []) Texn ∧\n      type_v tvs cenv senv (.Conv (some div_stamp) []) Texn"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_v_Boolv",
+   "statement": "theorem type_v_Boolv :\n    ∀ (tvs : Nat) (ctMap_ : ctMap) (tenvS : tenv_store) (b : Bool),\n      ctMap_has_bools ctMap_ → type_v tvs ctMap_ tenvS (Boolv b) Tbool"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "remove_lambda_prod",
+   "statement": "theorem remove_lambda_prod {α β γ : Type} :\n    ∀ (P : α → β → γ),\n      (fun ((x, y) : α × β) => P x y) = (fun (p : α × β) => P p.1 p.2)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "opapp_type_sound",
+   "statement": "theorem opapp_type_sound :\n    ∀ (ctMap_ : ctMap) (tenvS : tenv_store) (vs : List v) (ts : List sem_t) (t : sem_t),\n      ctMap_ok ctMap_ ∧\n      type_op .Opapp ts t ∧\n      LIST_REL (type_v 0 ctMap_ tenvS) vs ts →\n      ∃ (env : sem_env) (e : exp) (tenv : type_env) (tenvE : tenv_val_exp),\n        tenv_ok tenv ∧\n        tenv_val_exp_ok tenvE ∧\n        num_tvs tenvE = 0 ∧\n        type_all_env ctMap_ tenvS env { tenv with v := add_tenvE tenvE tenv.v } ∧\n        type_e tenv tenvE e t ∧\n        do_opapp vs = some (env, e)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "store_type_extension_weakS",
+   "statement": "theorem store_type_extension_weakS :\n    ∀ (tenvS1 tenvS2 : tenv_store),\n      store_type_extension tenvS1 tenvS2 → weakS tenvS2 tenvS1"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "store_type_extension_refl",
+   "statement": "theorem store_type_extension_refl :\n    ∀ (tenvS : tenv_store), store_type_extension tenvS tenvS"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "store_type_extension_trans",
+   "statement": "theorem store_type_extension_trans :\n    ∀ (s1 s2 s3 : tenv_store),\n      store_type_extension s1 s2 ∧ store_type_extension s2 s3 →\n      store_type_extension s1 s3"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "store_assign_type_sound",
+   "statement": "theorem store_assign_type_sound :\n    ∀ (ctMap_ : ctMap) (tenvS : tenv_store) (store_ : List (store_v v))\n      (sv : store_v v) (st : store_t) (l : Nat),\n      type_s ctMap_ store_ tenvS ∧\n      Finmap.FLOOKUP tenvS l = some st ∧\n      type_sv ctMap_ tenvS sv st →\n      ∃ (store' : List (store_v v)),\n        store_assign l sv store_ = some store' ∧\n        type_s ctMap_ store' tenvS"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "store_alloc_type_sound",
+   "statement": "theorem store_alloc_type_sound :\n    ∀ (ctMap_ : ctMap) (tenvS : tenv_store) (store_ : List (store_v v))\n      (sv : store_v v) (st : store_t),\n      ctMap_ok ctMap_ ∧\n      type_s ctMap_ store_ tenvS ∧\n      type_sv ctMap_ tenvS sv st →\n      ∃ (store' : List (store_v v)) (tenvS' : tenv_store) (n : Nat),\n        store_type_extension tenvS tenvS' ∧\n        store_alloc sv store_ = (store', n) ∧\n        type_s ctMap_ store' tenvS' ∧\n        Finmap.FLOOKUP tenvS' n = some st"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_v_list_to_v",
+   "statement": "theorem type_v_list_to_v :\n    ∀ (n : Nat) (ctMap_ : ctMap) (tenvS : tenv_store) (x : v) (xs : List v) (t : sem_t),\n      type_v n ctMap_ tenvS x t ∧\n      v_to_list x = some xs →\n      type_v n ctMap_ tenvS (list_to_v xs) t"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_v_list_to_v_APPEND",
+   "statement": "theorem type_v_list_to_v_APPEND :\n    ∀ (ctMap_ : ctMap) (tenvS : tenv_store) (xs ys : List v) (t : sem_t),\n      ctMap_has_lists ctMap_ ∧\n      type_v 0 ctMap_ tenvS (list_to_v xs) (.Tapp [t] Tlist_num) ∧\n      type_v 0 ctMap_ tenvS (list_to_v ys) (.Tapp [t] Tlist_num) →\n      type_v 0 ctMap_ tenvS (list_to_v (xs ++ ys)) (.Tapp [t] Tlist_num)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "do_eq_Boolv",
+   "statement": "theorem do_eq_Boolv :\n    ∀ (b b' : Bool),\n      do_eq (Boolv b) (Boolv b') = .Eq_val (b == b')"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "prim_canonical_Boolv_thm",
+   "statement": "theorem prim_canonical_Boolv_thm :\n    ∀ (tvs : Nat) (ctMap_ : ctMap) (tenvS : tenv_store) (val_ : v),\n      type_v tvs ctMap_ tenvS val_ Tbool ∧ ctMap_ok ctMap_ ∧ ctMap_has_bools ctMap_ →\n      ∃ (b : Bool), val_ = Boolv b"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "prim_canonical_Boolv_cases",
+   "statement": "theorem prim_canonical_Boolv_cases :\n    ∀ (tvs : Nat) (ctMap_ : ctMap) (tenvS : tenv_store) (val_ : v),\n      type_v tvs ctMap_ tenvS val_ (.Tapp [] Tbool_num) ∧\n      ctMap_ok ctMap_ ∧\n      ctMap_has_bools ctMap_ →\n      val_ = Boolv true ∨ val_ = Boolv false"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "op_type_sound",
+   "statement": "theorem op_type_sound :\n    ∀ {ffi : Type} (ctMap_ : ctMap) (tenvS : tenv_store) (vs : List v)\n      (op_ : op) (ts : List sem_t) (t : sem_t) (store_ : List (store_v v))\n      (ffi_ : ffi_state ffi),\n      good_ctMap ctMap_ ∧\n      op_ ≠ .Opapp ∧\n      type_s ctMap_ store_ tenvS ∧\n      type_op op_ ts t ∧\n      check_freevars 0 [] t ∧\n      LIST_REL (type_v 0 ctMap_ tenvS) vs ts.reverse →\n      ∃ (tenvS' : tenv_store) (store' : List (store_v v)) (ffi' : ffi_state ffi)\n        (r : result v v),\n        store_type_extension tenvS tenvS' ∧\n        type_s ctMap_ store' tenvS' ∧\n        do_app (store_, ffi_) op_ vs.reverse = some ((store', ffi'), r) ∧\n        match r with\n        | .Rval val_ => type_v 0 ctMap_ tenvS' val_ t\n        | .Rerr (.Rraise val_) => type_v 0 ctMap_ tenvS' val_ Texn\n        | .Rerr (.Rabort (.Rffi_error _)) => True\n        | .Rerr (.Rabort _) => False"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "build_conv_type_sound",
+   "statement": "theorem build_conv_type_sound :\n    ∀ (envC : env_ctor) (cn : cml_id modN conN) (vs : List v) (tvs : Nat)\n      (ts : List sem_t) (ctMap_ : ctMap) (tenvS : tenv_store) (ts' : List sem_t)\n      (tn : type_ident) (tenvC : tenv_ctor) (tvs' : List tvarN)\n      (tenvE : tenv_val_exp) (l : Nat),\n      nsAll2 (type_ctor ctMap_) envC tenvC ∧\n      do_con_check envC (some cn) l ∧\n      num_tvs tenvE = 0 ∧\n      EVERY (check_freevars (num_tvs (bind_tvar tvs tenvE)) []) ts' ∧\n      tvs'.length = ts'.length ∧\n      LIST_REL (type_v tvs ctMap_ tenvS) vs\n        (ts.map (type_subst (Finmap.alist_to_fmap (tvs'.zip ts')))).reverse ∧\n      nsLookup tenvC cn = some (tvs', ts, tn) →\n      ∃ (val_ : v),\n        build_conv envC (some cn) vs.reverse = some val_ ∧\n        type_v tvs ctMap_ tenvS val_ (.Tapp ts' tn)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "same_ctor_and_same_tid",
+   "statement": "theorem same_ctor_and_same_tid :\n    ∀ (stamp1 stamp2 : stamp),\n      same_ctor stamp1 stamp2 ∧ same_type stamp1 stamp2 →\n      stamp1 = stamp2"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "pat_type_sound",
+   "statement": "theorem pat_type_sound :\n    (∀ (cenv : env_ctor) (st : store v) (p : pat) (val_ : v)\n       (bindings : List (varN × v)) (tenv : type_env) (ctMap_ : ctMap)\n       (tbindings : List (varN × sem_t)) (t : sem_t)\n       (new_tbindings : List (varN × sem_t)) (tenvS : tenv_store) (tvs : Nat),\n      ctMap_ok ctMap_ ∧\n      nsAll2 (type_ctor ctMap_) cenv tenv.c ∧\n      type_v tvs ctMap_ tenvS val_ t ∧\n      type_p tvs tenv p t new_tbindings ∧\n      type_s ctMap_ st tenvS ∧\n      LIST_REL (fun (p1 : varN × v) (p2 : varN × sem_t) =>\n        p1.1 = p2.1 ∧ type_v tvs ctMap_ tenvS p1.2 p2.2) bindings tbindings →\n      pmatch cenv st p val_ bindings = .No_match ∨\n      ∃ (bindings' : List (varN × v)),\n        pmatch cenv st p val_ bindings = .Match bindings' ∧\n        LIST_REL (fun (p1 : varN × v) (p2 : varN × sem_t) =>\n          p1.1 = p2.1 ∧ type_v tvs ctMap_ tenvS p1.2 p2.2) bindings'\n          (new_tbindings ++ tbindings)) ∧\n    (∀ (cenv : env_ctor) (st : store v) (ps : List pat) (vs : List v)\n       (bindings : List (varN × v)) (tenv : type_env) (ctMap_ : ctMap)\n       (tbindings : List (varN × sem_t)) (new_tbindings : List (varN × sem_t))\n       (ts : List sem_t) (tenvS : tenv_store) (tvs : Nat),\n      ctMap_ok ctMap_ ∧\n      nsAll2 (type_ctor ctMap_) cenv tenv.c ∧\n      LIST_REL (type_v tvs ctMap_ tenvS) vs ts ∧\n      type_ps tvs tenv ps ts new_tbindings ∧\n      type_s ctMap_ st tenvS ∧\n      LIST_REL (fun (p1 : varN × v) (p2 : varN × sem_t) =>\n        p1.1 = p2.1 ∧ type_v tvs ctMap_ tenvS p1.2 p2.2) bindings tbindings →\n      pmatch_list cenv st ps vs bindings = .No_match ∨\n      ∃ (bindings' : List (varN × v)),\n        pmatch_list cenv st ps vs bindings = .Match bindings' ∧\n        LIST_REL (fun (p1 : varN × v) (p2 : varN × sem_t) =>\n          p1.1 = p2.1 ∧ type_v tvs ctMap_ tenvS p1.2 p2.2) bindings'\n          (new_tbindings ++ tbindings))"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "lookup_var_sound",
+   "statement": "theorem lookup_var_sound :\n    ∀ (n : cml_id modN varN) (tvs : Nat) (tenvE : tenv_val_exp)\n      (targs : List sem_t) (t : sem_t) (ctMap_ : ctMap) (tenvS : tenv_store)\n      (env : sem_env) (tenv : type_env),\n      lookup_var n (bind_tvar tvs tenvE) tenv = some (targs.length, t) ∧\n      ctMap_ok ctMap_ ∧\n      tenv_val_exp_ok tenvE ∧\n      num_tvs tenvE = 0 ∧\n      EVERY (check_freevars tvs []) targs ∧\n      type_all_env ctMap_ tenvS env { tenv with v := add_tenvE tenvE tenv.v } →\n      ∃ (val_ : v),\n        nsLookup env.v_ n = some val_ ∧\n        type_v tvs ctMap_ tenvS val_ (deBruijn_subst 0 targs t)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "EVERY_REPLICATE",
+   "statement": "theorem EVERY_REPLICATE :\n    ∀ (tvs : Nat) (ctMap_ : ctMap) (tenv : tenv_store) (t' : sem_t) (vs : List v),\n      (∀ (x : v), x ∈ vs → type_v tvs ctMap_ tenv x t') ↔\n      (∀ (x : v × sem_t), x ∈ vs.zip (REPLICATE vs.length t') → type_v tvs ctMap_ tenv x.1 x.2)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "EVERY_LIST_REL_thm",
+   "statement": "theorem EVERY_LIST_REL_thm :\n    ∀ (n : Nat) (ctMap_ : ctMap) (tenvS : tenv_store) (t : sem_t) (vs : List v),\n      (∀ (v_ : v), v_ ∈ vs → type_v n ctMap_ tenvS v_ t) ↔\n      LIST_REL (type_v n ctMap_ tenvS) vs (REPLICATE vs.length t)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "exp_type_sound",
+   "statement": "theorem exp_type_sound :\n    ∀ (ctMap_ : ctMap),\n    (∀ {ffi : Type} (s : cml_state ffi) (env : sem_env) (es : List exp)\n       (r : result (List v) v) (s' : cml_state ffi) (tenv : type_env)\n       (tenvE : tenv_val_exp) (ts : List sem_t) (tvs : Nat) (tenvS : tenv_store),\n      evaluate s env es = (s', r) ∧\n      tenv_ok tenv ∧\n      tenv_val_exp_ok tenvE ∧\n      good_ctMap ctMap_ ∧\n      num_tvs tenvE = 0 ∧\n      type_all_env ctMap_ tenvS env { tenv with v := add_tenvE tenvE tenv.v } ∧\n      type_s ctMap_ s.refs tenvS ∧\n      (tvs ≠ 0 → EVERY is_value es) ∧\n      type_es tenv (bind_tvar tvs tenvE) es ts →\n      ∃ (tenvS' : tenv_store),\n        type_s ctMap_ s'.refs tenvS' ∧\n        store_type_extension tenvS tenvS' ∧\n        s'.next_type_stamp = s.next_type_stamp ∧\n        s'.next_exn_stamp = s.next_exn_stamp ∧\n        match r with\n        | .Rval vs => LIST_REL (type_v tvs ctMap_ tenvS') vs ts\n        | .Rerr (.Rraise val_) => type_v 0 ctMap_ tenvS' val_ Texn\n        | .Rerr (.Rabort .Rtimeout_error) => True\n        | .Rerr (.Rabort (.Rffi_error _)) => True\n        | .Rerr (.Rabort .Rtype_error) => False) ∧\n    (∀ {ffi : Type} (s : cml_state ffi) (env : sem_env) (val_ : v)\n       (pes : List (pat × exp)) (err_v : v) (r : result (List v) v)\n       (s' : cml_state ffi) (tenv : type_env) (tenvE : tenv_val_exp)\n       (t1 t2 : sem_t) (tvs : Nat) (tenvS : tenv_store),\n      evaluate_match s env val_ pes err_v = (s', r) ∧\n      tenv_ok tenv ∧\n      tenv_val_exp_ok tenvE ∧\n      good_ctMap ctMap_ ∧\n      num_tvs tenvE = 0 ∧\n      type_all_env ctMap_ tenvS env { tenv with v := add_tenvE tenvE tenv.v } ∧\n      type_s ctMap_ s.refs tenvS ∧\n      type_v tvs ctMap_ tenvS val_ t1 ∧\n      type_v 0 ctMap_ tenvS err_v Texn ∧\n      type_pes tvs tvs tenv tenvE pes t1 t2 →\n      ∃ (tenvS' : tenv_store),\n        type_s ctMap_ s'.refs tenvS' ∧\n        store_type_extension tenvS tenvS' ∧\n        s'.next_type_stamp = s.next_type_stamp ∧\n        s'.next_exn_stamp = s.next_exn_stamp ∧\n        match r with\n        | .Rval vs => type_v tvs ctMap_ tenvS' vs.head! t2\n        | .Rerr (.Rraise val_) => type_v 0 ctMap_ tenvS' val_ Texn\n        | .Rerr (.Rabort .Rtimeout_error) => True\n        | .Rerr (.Rabort (.Rffi_error _)) => True\n        | .Rerr (.Rabort .Rtype_error) => False)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "build_tdefs_build_tenv",
+   "statement": "theorem build_tdefs_build_tenv :\n    ∀ (tenvT : tenv_abbrev) (tds : type_def) (tids : List type_ident)\n      (next : Nat) (ctMap_ : ctMap),\n      EVERY (fun (p : List tvarN × typeN × List (conN × List ast_t)) =>\n        ALL_DISTINCT (p.2.2.map Prod.fst)) tds ∧\n      tds.length = tids.length →\n      nsAll2\n        (type_ctor (Finmap.FUPDATE_LIST ctMap_ (type_def_to_ctMap tenvT next tds tids).reverse))\n        (build_tdefs next tds : env_ctor)\n        (build_ctor_tenv tenvT tds tids)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_sound_invariant_union",
+   "statement": "theorem type_sound_invariant_union :\n    ∀ {ffi : Type} (st : cml_state ffi) (env : sem_env) (ctMap_ : ctMap)\n      (tenvS : tenv_store) (tids1 tids2 : Set type_ident) (tenv : type_env),\n      type_sound_invariant st env ctMap_ tenvS (tids1 ∪ tids2) tenv →\n      type_sound_invariant st env ctMap_ tenvS tids1 tenv"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "check_ctor_tenv_dups",
+   "statement": "theorem check_ctor_tenv_dups :\n    ∀ (tenvT : tenv_abbrev) (tds : type_def),\n      check_ctor_tenv tenvT tds → EVERY check_dup_ctors tds"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_all_env_extend",
+   "statement": "theorem type_all_env_extend :\n    ∀ (ctMap_ : ctMap) (tenvS : tenv_store) (env1 env2 : sem_env)\n      (tenv1 tenv2 : type_env),\n      type_all_env ctMap_ tenvS env1 tenv1 ∧\n      type_all_env ctMap_ tenvS env2 tenv2 →\n      type_all_env ctMap_ tenvS (extend_dec_env env1 env2)\n        (extend_dec_tenv tenv1 tenv2)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "type_e_con_check",
+   "statement": "theorem type_e_con_check :\n    ∀ (ctMap_ : ctMap) (envc : env_ctor),\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (e : exp) (t : sem_t),\n      type_e tenv tenvE e t →\n      nsAll2 (type_ctor ctMap_) envc tenv.c →\n      every_exp (one_con_check envc) e) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (es : List exp) (ts : List sem_t),\n      type_es tenv tenvE es ts →\n      nsAll2 (type_ctor ctMap_) envc tenv.c →\n      EVERY (every_exp (one_con_check envc)) es) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (funs : List (varN × varN × exp))\n       (env_ : List (varN × sem_t)),\n      type_funs tenv tenvE funs env_ →\n      nsAll2 (type_ctor ctMap_) envc tenv.c →\n      EVERY (fun (p : varN × varN × exp) => every_exp (one_con_check envc) p.2.2) funs)"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "decs_type_sound_no_check",
+   "statement": "theorem decs_type_sound_no_check :\n    ∀ {ffi : Type} (st : cml_state ffi) (env : sem_env) (ds : List dec)\n      (st' : cml_state ffi) (r : result sem_env v) (ctMap_ : ctMap)\n      (tenvS : tenv_store) (tenv : type_env) (tids : Set type_ident)\n      (tenv' : type_env),\n      evaluate_decs st env ds = (st', r) ∧\n      type_ds false tenv ds tids tenv' ∧\n      type_sound_invariant st env ctMap_ tenvS tids tenv →\n      ∃ (ctMap' : ctMap) (tenvS' : tenv_store),\n        weakCT ctMap' ctMap_ ∧\n        Finmap.FRANGE (Finmap.o_f (fun p => p.2.2) ctMap') \\\n          Finmap.FRANGE (Finmap.o_f (fun p => p.2.2) ctMap_) ⊆ tids ∧\n        store_type_extension tenvS tenvS' ∧\n        match r with\n        | .Rval env' =>\n          type_all_env ctMap' tenvS' env' tenv' ∧\n          type_sound_invariant st' (extend_dec_env env' env)\n            ctMap' tenvS' ∅ (extend_dec_tenv tenv' tenv)\n        | .Rerr (.Rraise err_v) =>\n          type_v 0 ctMap' tenvS' err_v Texn ∧\n          type_sound_invariant st' env ctMap' tenvS' ∅ tenv\n        | .Rerr (.Rabort .Rtype_error) => False\n        | .Rerr (.Rabort .Rtimeout_error) => True\n        | .Rerr (.Rabort (.Rffi_error _)) => True"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "decs_type_sound",
+   "statement": "theorem decs_type_sound :\n    ∀ {ffi : Type} (st : cml_state ffi) (env : sem_env) (ds : List dec)\n      (extra_checks : Bool) (st' : cml_state ffi) (r : result sem_env v)\n      (ctMap_ : ctMap) (tenvS : tenv_store) (tenv : type_env) (tids : Set type_ident)\n      (tenv' : type_env),\n      evaluate_decs st env ds = (st', r) ∧\n      type_ds extra_checks tenv ds tids tenv' ∧\n      type_sound_invariant st env ctMap_ tenvS tids tenv →\n      ∃ (ctMap' : ctMap) (tenvS' : tenv_store),\n        weakCT ctMap' ctMap_ ∧\n        Finmap.FRANGE (Finmap.o_f (fun p => p.2.2) ctMap') \\\n          Finmap.FRANGE (Finmap.o_f (fun p => p.2.2) ctMap_) ⊆ tids ∧\n        store_type_extension tenvS tenvS' ∧\n        match r with\n        | .Rval env' =>\n          type_all_env ctMap' tenvS' env' tenv' ∧\n          type_sound_invariant st' (extend_dec_env env' env)\n            ctMap' tenvS' ∅ (extend_dec_tenv tenv' tenv)\n        | .Rerr (.Rraise err_v) =>\n          type_v 0 ctMap' tenvS' err_v Texn ∧\n          type_sound_invariant st' env ctMap' tenvS' ∅ tenv\n        | .Rerr (.Rabort .Rtype_error) => False\n        | .Rerr (.Rabort (.Rffi_error _)) => True\n        | .Rerr (.Rabort .Rtimeout_error) => True"
+  },
+  {
+   "file": "TypeSound.lean",
+   "name": "semantics_type_sound",
+   "statement": "theorem semantics_type_sound :\n    ∀ {ffi : Type} (st : cml_state ffi) (env : sem_env) (tops : List dec)\n      (r : behaviour) (checks : Bool) (ctMap_ : ctMap) (tenvS : tenv_store)\n      (tenv : type_env) (new_tenv : type_env) (tids : Set type_ident),\n      semantics_prog st env tops r ∧\n      type_ds checks tenv tops tids new_tenv ∧\n      type_sound_invariant st env ctMap_ tenvS tids tenv →\n      r ≠ .Fail"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "unchanged_tenv",
+   "statement": "theorem unchanged_tenv :\n    ∀ (tenv : type_env),\n      { v := tenv.v, c := tenv.c, t := tenv.t : type_env} = tenv"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "extend_dec_tenv_assoc_thm",
+   "statement": "theorem extend_dec_tenv_assoc_thm :\n    ∀ (tenv1 tenv2 tenv3 : type_env),\n      extend_dec_tenv tenv1 (extend_dec_tenv tenv2 tenv3) =\n      extend_dec_tenv (extend_dec_tenv tenv1 tenv2) tenv3"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_val_ok_nsEmpty",
+   "statement": "theorem tenv_val_ok_nsEmpty :\n    tenv_val_ok nsEmpty"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_ctor_ok_nsEmpty",
+   "statement": "theorem tenv_ctor_ok_nsEmpty :\n    tenv_ctor_ok nsEmpty"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_abbrev_ok_nsEmpty",
+   "statement": "theorem tenv_abbrev_ok_nsEmpty :\n    tenv_abbrev_ok nsEmpty"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_ok_empty",
+   "statement": "theorem tenv_ok_empty :\n    tenv_ok { v := nsEmpty, c := nsEmpty, t := nsEmpty }"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "check_freevars_add",
+   "statement": "theorem check_freevars_add :\n    ∀ (tvs : Nat) (tvs' : List tvarN) (t : sem_t),\n      check_freevars tvs tvs' t →\n      ∀ (tvs'' : Nat), tvs'' ≥ tvs → check_freevars tvs'' tvs' t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "check_freevars_subst_single",
+   "statement": "theorem check_freevars_subst_single :\n    ∀ (dbmax : Nat) (tvs : List tvarN) (t : sem_t) (tvs' : List tvarN) (ts : List sem_t),\n      tvs.length = ts.length ∧\n      check_freevars dbmax tvs t ∧\n      EVERY (check_freevars dbmax tvs') ts →\n      check_freevars dbmax tvs' (type_subst (Finmap.alist_to_fmap (ZIP (tvs, ts))) t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBruijn_inc0",
+   "statement": "theorem deBruijn_inc0 :\n    (∀ (t : sem_t) (sk : Nat), deBruijn_inc sk 0 t = t) ∧\n    (∀ (ts : List sem_t) (sk : Nat), ts.map (deBruijn_inc sk 0) = ts)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBruijn_inc_deBruijn_inc",
+   "statement": "theorem deBruijn_inc_deBruijn_inc :\n    ∀ (sk i2 : Nat) (t : sem_t) (i1 : Nat),\n      deBruijn_inc sk i1 (deBruijn_inc sk i2 t) = deBruijn_inc sk (i1 + i2) t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBuijn_inc_lem1",
+   "statement": "theorem deBuijn_inc_lem1 :\n    ∀ (sk i2 : Nat) (t : sem_t) (i1 : Nat),\n      deBruijn_inc sk i1 (deBruijn_inc 0 (sk + i2) t) = deBruijn_inc 0 (i1 + (sk + i2)) t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_subst_deBruijn_inc_single",
+   "statement": "theorem type_subst_deBruijn_inc_single :\n    ∀ (s : Finmap tvarN sem_t) (t : sem_t) (ts : List sem_t) (tvs : List tvarN) (inc sk : Nat),\n      tvs.length = ts.length ∧\n      s = Finmap.alist_to_fmap (ZIP (tvs, ts)) ∧\n      check_freevars 0 tvs t →\n      deBruijn_inc sk inc (type_subst s t) =\n      type_subst (Finmap.alist_to_fmap (ZIP (tvs, ts.map (fun t => deBruijn_inc sk inc t)))) t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_subst_deBruijn_inc_list",
+   "statement": "theorem type_subst_deBruijn_inc_list :\n    ∀ (ts' ts : List sem_t) (tvs : List tvarN) (inc sk : Nat),\n      tvs.length = ts.length ∧\n      EVERY (check_freevars 0 tvs) ts' →\n      (ts'.map (type_subst (Finmap.alist_to_fmap (ZIP (tvs, ts))))).map (deBruijn_inc sk inc) =\n      ts'.map (type_subst (Finmap.alist_to_fmap (ZIP (tvs, ts.map (fun t => deBruijn_inc sk inc t)))))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "check_freevars_deBruijn_inc",
+   "statement": "theorem check_freevars_deBruijn_inc :\n    ∀ (tvs : Nat) (tvs' : List tvarN) (t : sem_t),\n      check_freevars tvs tvs' t →\n      ∀ (n n' : Nat), check_freevars (n + tvs) tvs' (deBruijn_inc n' n t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "nil_deBruijn_inc",
+   "statement": "theorem nil_deBruijn_inc :\n    ∀ (skip tvs : Nat) (t : sem_t),\n      (check_freevars skip [] t ∨ check_freevars skip [] (deBruijn_inc skip tvs t)) →\n      deBruijn_inc skip tvs t = t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBruijn_subst_check_freevars",
+   "statement": "theorem deBruijn_subst_check_freevars :\n    ∀ (tvs : Nat) (tvs' : List tvarN) (t : sem_t) (ts : List sem_t) (n : Nat),\n      check_freevars tvs tvs' t ∧\n      EVERY (check_freevars tvs tvs') ts →\n      check_freevars tvs tvs' (deBruijn_subst 0 ts t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBruijn_subst_check_freevars2",
+   "statement": "theorem deBruijn_subst_check_freevars2 :\n    ∀ (tvs : Nat) (tvs' : List tvarN) (t : sem_t) (ts : List sem_t) (n : Nat) (tvs'' : List tvarN),\n      check_freevars ts.length tvs' t ∧\n      EVERY (check_freevars tvs tvs') ts →\n      check_freevars tvs tvs' (deBruijn_subst 0 ts t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "check_freevars_subst_inc",
+   "statement": "theorem check_freevars_subst_inc :\n    ∀ (tvs : Nat) (tvs2 : List tvarN) (t : sem_t),\n      check_freevars tvs tvs2 t →\n      ∀ (tvs' : Nat) (targs : List sem_t) (tvs1 : Nat),\n        tvs = targs.length + tvs' ∧\n        EVERY (check_freevars (tvs1 + tvs') tvs2) targs →\n        check_freevars (tvs1 + tvs') tvs2\n          (deBruijn_subst 0 targs (deBruijn_inc targs.length tvs1 t))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "check_freevars_subst",
+   "statement": "theorem check_freevars_subst :\n    ∀ (tvs : Nat) (tvs2 : List tvarN) (t : sem_t),\n      check_freevars tvs tvs2 t →\n      ∀ (tvs' : Nat) (targs : List sem_t) (tvs1 : Nat),\n        tvs = targs.length + tvs' ∧\n        EVERY (check_freevars (tvs1 + tvs') tvs2) targs →\n        check_freevars (tvs1 + tvs') tvs2 (deBruijn_subst 0 targs t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_subst_deBruijn_subst_single",
+   "statement": "theorem type_subst_deBruijn_subst_single :\n    ∀ (s : Finmap tvarN sem_t) (t : sem_t) (tvs : List tvarN) (tvs' : List tvarN)\n      (ts ts' : List sem_t) (inc : Nat),\n      tvs.length = ts.length ∧\n      check_freevars 0 tvs t ∧\n      s = Finmap.alist_to_fmap (ZIP (tvs, ts)) →\n      deBruijn_subst inc ts' (type_subst (Finmap.alist_to_fmap (ZIP (tvs, ts))) t) =\n      type_subst (Finmap.alist_to_fmap (ZIP (tvs, ts.map (fun t => deBruijn_subst inc ts' t)))) t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_subst_deBruijn_subst_list",
+   "statement": "theorem type_subst_deBruijn_subst_list :\n    ∀ (t_ : sem_t) (tvs : List tvarN) (tvs' : List tvarN)\n      (ts ts' ts'' : List sem_t) (inc : Nat),\n      tvs.length = ts.length ∧\n      EVERY (check_freevars 0 tvs) ts'' →\n      (ts''.map (type_subst (Finmap.alist_to_fmap (ZIP (tvs, ts))))).map (deBruijn_subst inc ts') =\n      ts''.map (type_subst (Finmap.alist_to_fmap (ZIP (tvs, ts.map (fun t => deBruijn_subst inc ts' t)))))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "check_freevars_lem",
+   "statement": "theorem check_freevars_lem :\n    ∀ (l : Nat) (tvs' : List tvarN) (t : sem_t),\n      check_freevars l tvs' t →\n      ∀ (targs : List sem_t) (n1 tvs : Nat),\n        l = n1 + targs.length ∧\n        EVERY (check_freevars tvs tvs') targs →\n        check_freevars (n1 + tvs) tvs'\n          (deBruijn_subst n1 (targs.map (deBruijn_inc 0 n1)) t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "nil_deBruijn_subst",
+   "statement": "theorem nil_deBruijn_subst :\n    ∀ (skip : Nat) (tvs : List sem_t) (t : sem_t),\n      check_freevars skip [] t →\n      deBruijn_subst skip tvs t = t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBruijn_subst2_thm",
+   "statement": "theorem deBruijn_subst2_thm :\n    (∀ (t : sem_t) (sk : Nat) (targs targs' : List sem_t) (tvs' : List tvarN),\n      check_freevars targs.length [] t →\n      deBruijn_subst sk (targs'.map (deBruijn_inc 0 sk)) (deBruijn_subst 0 targs t) =\n      deBruijn_subst 0 (targs.map (deBruijn_subst sk (targs'.map (deBruijn_inc 0 sk)))) t) ∧\n    (∀ (ts : List sem_t) (sk : Nat) (targs targs' : List sem_t) (tvs' : List tvarN),\n      EVERY (check_freevars targs.length []) ts →\n      (ts.map (deBruijn_subst 0 targs)).map (deBruijn_subst sk (targs'.map (deBruijn_inc 0 sk))) =\n      ts.map (deBruijn_subst 0 (targs.map (deBruijn_subst sk (targs'.map (deBruijn_inc 0 sk))))))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_e_subst_lem3",
+   "statement": "theorem type_e_subst_lem3 :\n    ∀ (tvs : Nat) (tvs2 : List tvarN) (t : sem_t),\n      check_freevars tvs tvs2 t →\n      ∀ (tvs' : Nat) (targs : List sem_t) (n : Nat),\n        tvs = n + targs.length ∧\n        EVERY (check_freevars tvs' tvs2) targs →\n        check_freevars (n + tvs') tvs2\n          (deBruijn_subst n (targs.map (deBruijn_inc 0 n)) t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_e_subst_lem5",
+   "statement": "theorem type_e_subst_lem5 :\n    (∀ (t : sem_t) (n inc n' : Nat) (targs : List sem_t),\n      deBruijn_inc n inc\n        (deBruijn_subst (n + n') (targs.map (deBruijn_inc 0 (n + n'))) t) =\n      deBruijn_subst (n + inc + n') (targs.map (deBruijn_inc 0 (n + inc + n')))\n        (deBruijn_inc n inc t)) ∧\n    (∀ (ts : List sem_t) (n inc n' : Nat) (targs : List sem_t),\n      (ts.map (deBruijn_subst (n + n') (targs.map (deBruijn_inc 0 (n + n'))))).map (deBruijn_inc n inc) =\n      (ts.map (deBruijn_inc n inc)).map (deBruijn_subst (n + inc + n') (targs.map (deBruijn_inc 0 (n + inc + n')))))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "subst_inc_cancel",
+   "statement": "theorem subst_inc_cancel :\n    (∀ (t : sem_t) (ts : List sem_t) (inc : Nat),\n      deBruijn_subst 0 ts (deBruijn_inc 0 (inc + ts.length) t) =\n      deBruijn_inc 0 inc t) ∧\n    (∀ (ts' ts : List sem_t) (inc : Nat),\n      (ts'.map (deBruijn_inc 0 (inc + ts.length))).map (deBruijn_subst 0 ts) =\n      ts'.map (deBruijn_inc 0 inc))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_e_subst_lem7",
+   "statement": "theorem type_e_subst_lem7 :\n    (∀ (t : sem_t) (sk : Nat) (targs targs' : List sem_t) (tvs' tvs'' : List tvarN),\n      deBruijn_subst sk (targs'.map (deBruijn_inc 0 sk)) (deBruijn_subst 0 targs t) =\n      deBruijn_subst 0 (targs.map (deBruijn_subst sk (targs'.map (deBruijn_inc 0 sk))))\n        (deBruijn_subst (targs.length + sk) (targs'.map (deBruijn_inc 0 (targs.length + sk))) t)) ∧\n    (∀ (ts : List sem_t) (sk : Nat) (targs targs' : List sem_t) (tvs' tvs'' : List tvarN),\n      (ts.map (deBruijn_subst 0 targs)).map (deBruijn_subst sk (targs'.map (deBruijn_inc 0 sk))) =\n      (ts.map (deBruijn_subst (targs.length + sk) (targs'.map (deBruijn_inc 0 (targs.length + sk))))).map\n        (deBruijn_subst 0 (targs.map (deBruijn_subst sk (targs'.map (deBruijn_inc 0 sk))))))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBruijn_subst_id",
+   "statement": "theorem deBruijn_subst_id :\n    (∀ (t : sem_t) (n : Nat),\n      check_freevars n [] t →\n      deBruijn_subst 0 (GENLIST (fun i => sem_t.Tvar_db i) n) t = t) ∧\n    (∀ (ts : List sem_t) (n : Nat),\n      EVERY (check_freevars n []) ts →\n      ts.map (deBruijn_subst 0 (GENLIST (fun i => sem_t.Tvar_db i) n)) = ts)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBruijn_subst_freevars",
+   "statement": "theorem deBruijn_subst_freevars :\n    ∀ (skip : Nat) (targs : List sem_t) (t : sem_t) (tvs : Nat),\n      skip = 0 ∧\n      EVERY (check_freevars tvs []) targs ∧\n      check_freevars targs.length [] t →\n      check_freevars tvs [] (deBruijn_subst skip targs t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_abbrev_ok_lookup",
+   "statement": "theorem tenv_abbrev_ok_lookup :\n    ∀ (tenvT : tenv_abbrev) (tn : cml_id modN typeN) (tvs : List tvarN) (t : sem_t),\n      tenv_abbrev_ok tenvT ∧\n      nsLookup tenvT tn = some (tvs, t) →\n      check_freevars 0 tvs t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "check_freevars_type_name_subst",
+   "statement": "theorem check_freevars_type_name_subst :\n    ∀ (tvs : List tvarN) (t : ast_t) (dbmax : Nat) (tenvT : tenv_abbrev),\n      tenv_abbrev_ok tenvT ∧\n      check_type_names tenvT t ∧\n      check_freevars_ast tvs t →\n      check_freevars dbmax tvs (type_name_subst tenvT t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_ctor_ok_merge",
+   "statement": "theorem tenv_ctor_ok_merge :\n    ∀ (tenvC1 tenvC2 : tenv_ctor),\n      tenv_ctor_ok tenvC1 ∧ tenv_ctor_ok tenvC2 →\n      tenv_ctor_ok (nsAppend tenvC1 tenvC2)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_ctor_ok_lookup",
+   "statement": "theorem tenv_ctor_ok_lookup :\n    ∀ (tenvC : tenv_ctor) (cn : cml_id modN conN) (tvs : List tvarN) (ts : List sem_t) (tn : type_ident),\n      tenv_ctor_ok tenvC ∧ nsLookup tenvC cn = some (tvs, ts, tn) →\n      EVERY (check_freevars 0 tvs) ts"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "bind_tvar_rewrites",
+   "statement": "theorem bind_tvar_rewrites :\n    (∀ (tvs : Nat) (e1 e2 : tenv_val_exp),\n      db_merge (bind_tvar tvs e1) e2 = bind_tvar tvs (db_merge e1 e2)) ∧\n    (∀ (tvs : Nat) (e : tenv_val_exp),\n      num_tvs (bind_tvar tvs e) = tvs + num_tvs e) ∧\n    (∀ (tvs : Nat) (e : tenv_val_exp),\n      num_tvs (.Bind_tvar tvs e) = tvs + num_tvs e) ∧\n    (∀ (n : mlstring) (tvs : Nat) (t : sem_t) (e : tenv_val_exp),\n      num_tvs (.Bind_name n tvs t e) = num_tvs e) ∧\n    (num_tvs .Empty = 0) ∧\n    (∀ (n : mlstring) (inc tvs : Nat) (e : tenv_val_exp),\n      tveLookup n inc (bind_tvar tvs e) = tveLookup n (inc + tvs) e) ∧\n    (∀ (tvs : Nat) (e : tenv_val_exp),\n      tenv_val_exp_ok (bind_tvar tvs e) ↔ tenv_val_exp_ok e) ∧\n    (∀ (targs : List sem_t) (tvs : Nat) (e : tenv_val_exp),\n      deBruijn_subst_tenvE targs (bind_tvar tvs e) =\n      bind_tvar tvs (deBruijn_subst_tenvE targs e))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "bind_tvar0",
+   "statement": "theorem bind_tvar0 :\n    ∀ (x : tenv_val_exp), bind_tvar 0 x = x"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_subst_none",
+   "statement": "theorem tveLookup_subst_none :\n    ∀ (targs : List sem_t) (n : mlstring) (inc : Nat) (e : tenv_val_exp),\n      tveLookup n inc (deBruijn_subst_tenvE targs e) = none ↔\n      tveLookup n inc e = none"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_db_merge_none",
+   "statement": "theorem tveLookup_db_merge_none :\n    ∀ (n : mlstring) (inc : Nat) (e1 e2 : tenv_val_exp),\n      tveLookup n inc (db_merge e1 e2) = none ↔\n      tveLookup n inc e1 = none ∧ tveLookup n (num_tvs e1 + inc) e2 = none"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_inc_none",
+   "statement": "theorem tveLookup_inc_none :\n    ∀ (n : mlstring) (inc : Nat) (e : tenv_val_exp),\n      tveLookup n inc e = none ↔\n      tveLookup n 0 e = none"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_freevars_thm",
+   "statement": "theorem tveLookup_freevars_thm :\n    ∀ (n : mlstring) (tvs : Nat) (tenvE : tenv_val_exp) (tvs' : Nat) (t : sem_t),\n      tenv_val_exp_ok tenvE ∧\n      num_tvs tenvE = 0 ∧\n      tveLookup n tvs tenvE = some (tvs', t) →\n      check_freevars tvs' [] t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_freevars_local",
+   "statement": "theorem tveLookup_freevars_local :\n    ∀ (e : tenv_val_exp) (n : mlstring) (inc : Nat) (t : sem_t) (tvs : Nat),\n      tenv_val_exp_ok e ∧\n      tveLookup n inc e = some (tvs, t) →\n      check_freevars (tvs + inc + num_tvs e) [] t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "bind_var_list_append",
+   "statement": "theorem bind_var_list_append :\n    ∀ (n : Nat) (te1 te2 : List (mlstring × sem_t)) (te3 : tenv_val_exp),\n      bind_var_list n (te1 ++ te2) te3 = bind_var_list n te1 (bind_var_list n te2 te3)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "num_tvs_bind_var_list",
+   "statement": "theorem num_tvs_bind_var_list :\n    ∀ (tvs : Nat) (env : List (mlstring × sem_t)) (tenvE : tenv_val_exp),\n      num_tvs (bind_var_list tvs env tenvE) = num_tvs tenvE"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_val_exp_ok_bvl",
+   "statement": "theorem tenv_val_exp_ok_bvl :\n    ∀ (tenvE : tenv_val_exp) (env : List (mlstring × sem_t)),\n      tenv_val_exp_ok tenvE ∧ EVERY (check_freevars (num_tvs tenvE) []) (env.map Prod.snd) →\n      tenv_val_exp_ok (bind_var_list 0 env tenvE)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_subst_some",
+   "statement": "theorem tveLookup_subst_some :\n    ∀ (n : mlstring) (e : tenv_val_exp) (targs : List sem_t) (tvs : Nat) (t : sem_t) (inc : Nat),\n      tveLookup n inc e = some (tvs, t) →\n      tveLookup n inc (deBruijn_subst_tenvE targs e) =\n        some (tvs, deBruijn_subst (tvs + inc + num_tvs e)\n          (targs.map (deBruijn_inc 0 (tvs + inc + num_tvs e))) t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "num_tvs_db_merge",
+   "statement": "theorem num_tvs_db_merge :\n    ∀ (e1 e2 : tenv_val_exp),\n      num_tvs (db_merge e1 e2) = num_tvs e1 + num_tvs e2"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "num_tvs_deBruijn_subst_tenvE",
+   "statement": "theorem num_tvs_deBruijn_subst_tenvE :\n    ∀ (targs : List sem_t) (tenvE : tenv_val_exp),\n      num_tvs (deBruijn_subst_tenvE targs tenvE) = num_tvs tenvE"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_inc_some",
+   "statement": "theorem tveLookup_inc_some :\n    ∀ (n : mlstring) (inc : Nat) (e : tenv_val_exp) (tvs : Nat) (t : sem_t) (inc2 : Nat),\n      tveLookup n inc e = some (tvs, t) →\n      ∃ (t' : sem_t),\n        t = deBruijn_inc tvs inc t' ∧\n        tveLookup n inc2 e = some (tvs, deBruijn_inc tvs inc2 t')"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_freevars_subst",
+   "statement": "theorem tveLookup_freevars_subst :\n    ∀ (tenvE : tenv_val_exp) (targs : List sem_t) (n : mlstring) (t : sem_t) (inc : Nat),\n      EVERY (check_freevars (inc + num_tvs tenvE) []) targs ∧\n      tveLookup n inc tenvE = some (targs.length, t) ∧\n      tenv_val_exp_ok tenvE →\n      check_freevars (inc + num_tvs tenvE) [] (deBruijn_subst 0 targs t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_val_exp_ok_db_merge",
+   "statement": "theorem tenv_val_exp_ok_db_merge :\n    ∀ (e1 e2 : tenv_val_exp),\n      tenv_val_exp_ok (db_merge e1 e2) → tenv_val_exp_ok e2"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_no_tvs",
+   "statement": "theorem tveLookup_no_tvs :\n    ∀ (tvs : Nat) (l : Nat) (tenv : tenv_val_exp) (n : mlstring) (t : sem_t),\n      tenv_val_exp_ok tenv ∧\n      num_tvs tenv = 0 →\n      (tveLookup n tvs tenv = some (l, t) ↔\n       tveLookup n 0 tenv = some (l, t))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "deBruijn_subst_E_bvl",
+   "statement": "theorem deBruijn_subst_E_bvl :\n    ∀ (targs : List sem_t) (tenv1 : List (mlstring × sem_t)) (tenv2 : tenv_val_exp) (tvs : Nat),\n      deBruijn_subst_tenvE targs (bind_var_list tvs tenv1 tenv2) =\n      bind_var_list tvs\n        (tenv1.map (fun (x, t) => (x, deBruijn_subst (tvs + num_tvs tenv2)\n          (targs.map (deBruijn_inc 0 (tvs + num_tvs tenv2))) t)))\n        (deBruijn_subst_tenvE targs tenv2)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "db_merge_bvl",
+   "statement": "theorem db_merge_bvl :\n    ∀ (tenv1 : List (mlstring × sem_t)) (tenv2 tenv3 : tenv_val_exp) (tvs : Nat),\n      db_merge (bind_var_list tvs tenv1 tenv2) tenv3 =\n      bind_var_list tvs tenv1 (db_merge tenv2 tenv3)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tveLookup_db_merge_some",
+   "statement": "theorem tveLookup_db_merge_some :\n    ∀ (n : mlstring) (inc : Nat) (tenvE1 tenvE2 : tenv_val_exp) (tvs : Nat) (t : sem_t),\n      tveLookup n inc (db_merge tenvE1 tenvE2) = some (tvs, t) ↔\n      tveLookup n inc tenvE1 = some (tvs, t) ∨\n      (tveLookup n inc tenvE1 = none ∧\n       tveLookup n (num_tvs tenvE1 + inc) tenvE2 = some (tvs, t))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_op_cases_thm",
+   "statement": "theorem type_op_cases_thm :\n    ∀ (op_ : op) (ts : List sem_t) (t3 : sem_t),\n      type_op op_ ts t3 ↔\n        (∃ u1 u2, op_ = .Opapp ∧ ts = [u1, u2] ∧ u1 = Tfn u2 t3) ∨\n        (∃ sh n u1, op_ = .Shift .W8 sh n ∧ ts = [u1] ∧ u1 = Tword8 ∧ t3 = Tword8) ∨\n        (∃ sh n u1, op_ = .Shift .W64 sh n ∧ ts = [u1] ∧ u1 = Tword64 ∧ t3 = Tword64) ∨\n        (∃ u1 u2, op_ = .Equality ∧ ts = [u1, u2] ∧ u1 = u2 ∧ t3 = Tbool) ∨\n        (∃ a ty, op_ = .Arith a ty ∧ (∀ arg, arg ∈ ts → arg = t_of ty) ∧ t3 = t_of ty ∧\n          supported_arith a ty = some ts.length) ∨\n        (∃ ty1 ty2 u1, op_ = .FromTo ty1 ty2 ∧ ts = [u1] ∧ u1 = t_of ty1 ∧ t3 = t_of ty2 ∧\n          supported_conversion ty1 ty2 = true) ∨\n        (∃ tst ty u1 u2, op_ = .Test tst ty ∧ ts = [u1, u2] ∧ u1 = u2 ∧ t3 = Tbool ∧\n          u1 = t_of ty ∧ supported_test tst ty = true) ∨\n        (∃ u1 u2, op_ = .Opassign ∧ ts = [u1, u2] ∧ u1 = Tref u2 ∧ t3 = Ttup []) ∨\n        (∃ u1, op_ = .Opref ∧ ts = [u1] ∧ t3 = Tref u1) ∨\n        (∃ u1, op_ = .Opderef ∧ ts = [u1] ∧ u1 = Tref t3) ∨\n        (∃ u1 u2, op_ = .Aw8alloc ∧ ts = [u1, u2] ∧ u1 = Tint ∧ u2 = Tword8 ∧ t3 = Tword8array) ∨\n        (∃ u1 u2, op_ = .Aw8sub ∧ ts = [u1, u2] ∧ u1 = Tword8array ∧ u2 = Tint ∧ t3 = Tword8) ∨\n        (∃ u1, op_ = .Aw8length ∧ ts = [u1] ∧ u1 = Tword8array ∧ t3 = Tint) ∨\n        (∃ u1 u2 u3, op_ = .Aw8update ∧ ts = [u1, u2, u3] ∧ u1 = Tword8array ∧ u2 = Tint ∧\n          u3 = Tword8 ∧ t3 = Ttup []) ∨\n        (∃ u1 u2 u3, op_ = .CopyStrStr ∧ ts = [u1, u2, u3] ∧ u1 = Tstring ∧ u2 = Tint ∧\n          u3 = Tint ∧ t3 = Tstring) ∨\n        (∃ u1 u2 u3 u4 u5, op_ = .CopyStrAw8 ∧ ts = [u1, u2, u3, u4, u5] ∧ u1 = Tstring ∧\n          u2 = Tint ∧ u3 = Tint ∧ u4 = Tword8array ∧ u5 = Tint ∧ t3 = Ttup []) ∨\n        (∃ u1 u2 u3, op_ = .CopyAw8Str ∧ ts = [u1, u2, u3] ∧ u1 = Tword8array ∧ u2 = Tint ∧\n          u3 = Tint ∧ t3 = Tstring) ∨\n        (∃ u1 u2 u3 u4 u5, op_ = .CopyAw8Aw8 ∧ ts = [u1, u2, u3, u4, u5] ∧ u1 = Tword8array ∧\n          u2 = Tint ∧ u3 = Tint ∧ u4 = Tword8array ∧ u5 = Tint ∧ t3 = Ttup []) ∨\n        (∃ u1, op_ = .Implode ∧ ts = [u1] ∧ u1 = Tlist Tchar ∧ t3 = Tstring) ∨\n        (∃ u1, op_ = .Explode ∧ ts = [u1] ∧ u1 = Tstring ∧ t3 = Tlist Tchar) ∨\n        (∃ u1 u2, op_ = .Strsub ∧ ts = [u1, u2] ∧ u1 = Tstring ∧ u2 = Tint ∧ t3 = Tchar) ∨\n        (∃ u1, op_ = .Strlen ∧ ts = [u1] ∧ u1 = Tstring ∧ t3 = Tint) ∨\n        (∃ u1, op_ = .Strcat ∧ ts = [u1] ∧ u1 = Tlist Tstring ∧ t3 = Tstring) ∨\n        (∃ u1 ctor, op_ = .VfromList ∧ ts = [.Tapp [u1] ctor] ∧ ctor = Tlist_num ∧\n          t3 = Tvector u1) ∨\n        (∃ u1 u2, op_ = .Vsub ∧ ts = [u1, u2] ∧ u2 = Tint ∧ Tvector t3 = u1) ∨\n        (∃ u1 ctor, op_ = .Vlength ∧ ts = [.Tapp [u1] ctor] ∧ ctor = Tvector_num ∧ t3 = Tint) ∨\n        (∃ u1 u2, op_ = .Aalloc ∧ ts = [u1, u2] ∧ u1 = Tint ∧ t3 = Tarray u2) ∨\n        (∃ u1, op_ = .AallocEmpty ∧ ts = [u1] ∧ u1 = Ttup [] ∧ ∃ u2, t3 = Tarray u2) ∨\n        (∃ u1 u2, op_ = .Asub ∧ ts = [u1, u2] ∧ u2 = Tint ∧ Tarray t3 = u1) ∨\n        (∃ u1 ctor, op_ = .Alength ∧ ts = [.Tapp [u1] ctor] ∧ ctor = Tarray_num ∧ t3 = Tint) ∨\n        (∃ u1 u2 u3, op_ = .Aupdate ∧ ts = [u1, u2, u3] ∧ u1 = Tarray u3 ∧ u2 = Tint ∧\n          t3 = Ttup []) ∨\n        (∃ u1 u2, op_ = .ConfigGC ∧ ts = [u1, u2] ∧ u1 = Tint ∧ u2 = Tint ∧ t3 = Ttup []) ∨\n        (∃ nm u1 u2, op_ = .FFI nm ∧ ts = [u1, u2] ∧ u1 = Tstring ∧ u2 = Tword8array ∧\n          t3 = Ttup []) ∨\n        (∃ u1 ctor u2, op_ = .ListAppend ∧ ts = [.Tapp [u1] ctor, u2] ∧ ctor = Tlist_num ∧\n          u2 = sem_t.Tapp [u1] ctor ∧ t3 = u2)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_ps_length",
+   "statement": "theorem type_ps_length :\n    ∀ (tvs : Nat) (tenvC : type_env) (ps : List pat) (ts : List sem_t) (tenv : List (varN × sem_t)),\n      type_ps tvs tenvC ps ts tenv → ps.length = ts.length"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_p_freevars",
+   "statement": "theorem type_p_freevars :\n    (∀ (tvs : Nat) (tenvC : type_env) (p : pat) (t : sem_t) (env' : List (varN × sem_t)),\n      type_p tvs tenvC p t env' →\n      check_freevars tvs [] t ∧\n      EVERY (check_freevars tvs []) (env'.map Prod.snd)) ∧\n    (∀ (tvs : Nat) (tenvC : type_env) (ps : List pat) (ts : List sem_t) (env' : List (varN × sem_t)),\n      type_ps tvs tenvC ps ts env' →\n      EVERY (check_freevars tvs []) ts ∧\n      EVERY (check_freevars tvs []) (env'.map Prod.snd))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_p_subst",
+   "statement": "theorem type_p_subst :\n    (∀ (n : Nat) (tenv : type_env) (p : pat) (t : sem_t) (new_bindings : List (varN × sem_t)),\n      type_p n tenv p t new_bindings →\n      ∀ (targs' : List sem_t) (inc : Nat) (tvs : Nat) (targs : List sem_t),\n        tenv_abbrev_ok tenv.t ∧\n        tenv_ctor_ok tenv.c ∧\n        n = inc + targs.length ∧\n        EVERY (check_freevars tvs []) targs ∧\n        targs' = targs.map (deBruijn_inc 0 inc) →\n        type_p (inc + tvs) tenv p\n          (deBruijn_subst inc targs' t)\n          (new_bindings.map (fun (x, t) => (x, deBruijn_subst inc targs' t)))) ∧\n    (∀ (n : Nat) (tenv : type_env) (ps : List pat) (ts : List sem_t) (new_bindings : List (varN × sem_t)),\n      type_ps n tenv ps ts new_bindings →\n      ∀ (targs' : List sem_t) (inc : Nat) (targs : List sem_t) (tvs : Nat),\n        tenv_abbrev_ok tenv.t ∧\n        tenv_ctor_ok tenv.c ∧\n        n = inc + targs.length ∧\n        EVERY (check_freevars tvs []) targs ∧\n        targs' = targs.map (deBruijn_inc 0 inc) →\n        type_ps (inc + tvs) tenv ps\n          (ts.map (deBruijn_subst inc targs'))\n          (new_bindings.map (fun (x, t) => (x, deBruijn_subst inc targs' t))))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_p_bvl",
+   "statement": "theorem type_p_bvl :\n    (∀ (tvs : Nat) (tenvC : type_env) (p : pat) (t : sem_t) (bindings : List (varN × sem_t)),\n      type_p tvs tenvC p t bindings →\n      ∀ (tenv' : tenv_val_exp), tenv_val_exp_ok tenv' → tenv_val_exp_ok (bind_var_list tvs bindings tenv')) ∧\n    (∀ (tvs : Nat) (tenvC : type_env) (ps : List pat) (ts : List sem_t) (bindings : List (varN × sem_t)),\n      type_ps tvs tenvC ps ts bindings →\n      ∀ (tenv' : tenv_val_exp), tenv_val_exp_ok tenv' → tenv_val_exp_ok (bind_var_list tvs bindings tenv'))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_p_tenvV_indep",
+   "statement": "theorem type_p_tenvV_indep :\n    (∀ (p : pat) (tvs : Nat) (tenv : type_env) (t : sem_t) (bindings : List (varN × sem_t)) (tenvV : tenv_val),\n      type_p tvs tenv p t bindings = type_p tvs { tenv with v := tenvV } p t bindings) ∧\n    (∀ (ps : List pat) (tvs : Nat) (tenv : type_env) (t : List sem_t) (bindings : List (varN × sem_t)) (tenvV : tenv_val),\n      type_ps tvs tenv ps t bindings = type_ps tvs { tenv with v := tenvV } ps t bindings)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_es_list_rel",
+   "statement": "theorem type_es_list_rel :\n    ∀ (es : List exp) (ts : List sem_t) (tenv : type_env) (tenvE : tenv_val_exp),\n      type_es tenv tenvE es ts = LIST_REL (type_e tenv tenvE) es ts"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_es_length",
+   "statement": "theorem type_es_length :\n    ∀ (tenv : type_env) (tenvE : tenv_val_exp) (es : List exp) (ts : List sem_t),\n      type_es tenv tenvE es ts → es.length = ts.length"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_val_exp_ok_bvl_funs",
+   "statement": "theorem tenv_val_exp_ok_bvl_funs :\n    ∀ (funs : List (varN × varN × exp)) (env : List (varN × sem_t))\n      (tenv : type_env) (bindings : List (varN × sem_t))\n      (tenv_val_ : tenv_val) (tenvE : tenv_val_exp),\n      type_funs tenv (bind_var_list 0 bindings tenvE) funs env ∧\n      tenv_val_exp_ok tenvE →\n      tenv_val_exp_ok (bind_var_list 0 env tenvE)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_e_freevars",
+   "statement": "theorem type_e_freevars :\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (e : exp) (t : sem_t),\n      type_e tenv tenvE e t →\n      tenv_val_exp_ok tenvE ∧ tenv_val_ok tenv.v →\n      check_freevars (num_tvs tenvE) [] t) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (es : List exp) (ts : List sem_t),\n      type_es tenv tenvE es ts →\n      tenv_val_exp_ok tenvE ∧ tenv_val_ok tenv.v →\n      EVERY (check_freevars (num_tvs tenvE) []) ts) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (funs : List (varN × varN × exp))\n       (env : List (varN × sem_t)),\n      type_funs tenv tenvE funs env →\n      tenv_val_exp_ok tenvE ∧ tenv_val_ok tenv.v →\n      EVERY (check_freevars (num_tvs tenvE) []) (env.map Prod.snd))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_e_subst",
+   "statement": "theorem type_e_subst :\n    ∀ (tenvE2 : tenv_val_exp),\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (e : exp) (t : sem_t),\n      type_e tenv tenvE e t →\n      ∀ (tenvE1 : tenv_val_exp) (targs : List sem_t) (tvs : Nat) (targs' : List sem_t),\n        num_tvs tenvE2 = 0 ∧\n        tenv_abbrev_ok tenv.t ∧\n        tenv_ctor_ok tenv.c ∧\n        tenv_val_ok tenv.v ∧\n        tenv_val_exp_ok tenvE ∧\n        EVERY (check_freevars tvs []) targs ∧\n        tenvE = db_merge tenvE1 (bind_tvar targs.length tenvE2) ∧\n        targs' = targs.map (deBruijn_inc 0 (num_tvs tenvE1)) →\n        type_e tenv (db_merge (deBruijn_subst_tenvE targs tenvE1) (bind_tvar tvs tenvE2))\n          e (deBruijn_subst (num_tvs tenvE1) targs' t)) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (es : List exp) (ts : List sem_t),\n      type_es tenv tenvE es ts →\n      ∀ (tenvE1 : tenv_val_exp) (targs : List sem_t) (tvs : Nat) (targs' : List sem_t),\n        num_tvs tenvE2 = 0 ∧\n        tenv_abbrev_ok tenv.t ∧\n        tenv_ctor_ok tenv.c ∧\n        tenv_val_ok tenv.v ∧\n        tenv_val_exp_ok tenvE ∧\n        EVERY (check_freevars tvs []) targs ∧\n        tenvE = db_merge tenvE1 (bind_tvar targs.length tenvE2) ∧\n        targs' = targs.map (deBruijn_inc 0 (num_tvs tenvE1)) →\n        type_es tenv (db_merge (deBruijn_subst_tenvE targs tenvE1) (bind_tvar tvs tenvE2))\n          es (ts.map (deBruijn_subst (num_tvs tenvE1) targs'))) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (funs : List (varN × varN × exp))\n       (env : List (varN × sem_t)),\n      type_funs tenv tenvE funs env →\n      ∀ (tenvE1 : tenv_val_exp) (targs : List sem_t) (tvs : Nat) (targs' : List sem_t),\n        num_tvs tenvE2 = 0 ∧\n        tenv_abbrev_ok tenv.t ∧\n        tenv_ctor_ok tenv.c ∧\n        tenv_val_ok tenv.v ∧\n        tenv_val_exp_ok tenvE ∧\n        EVERY (check_freevars tvs []) targs ∧\n        tenvE = db_merge tenvE1 (bind_tvar targs.length tenvE2) ∧\n        targs' = targs.map (deBruijn_inc 0 (num_tvs tenvE1)) →\n        type_funs tenv (db_merge (deBruijn_subst_tenvE targs tenvE1) (bind_tvar tvs tenvE2))\n          funs (env.map (fun (x, t) => (x, deBruijn_subst (num_tvs tenvE1) targs' t))))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_funs_Tfn",
+   "statement": "theorem type_funs_Tfn :\n    ∀ (tenv : type_env) (tenvE : tenv_val_exp) (funs : List (varN × varN × exp))\n      (bindings : List (varN × sem_t)) (tvs : Nat) (t : sem_t) (n : varN),\n      type_funs tenv tenvE funs bindings ∧\n      ALOOKUP bindings n = some t →\n      ∃ (t1 t2 : sem_t), t = Tfn t1 t2 ∧ check_freevars (num_tvs tenvE) [] (Tfn t1 t2)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_funs_lookup",
+   "statement": "theorem type_funs_lookup :\n    ∀ (fn : varN) (tenvE : tenv_val_exp) (funs : List (varN × varN × exp))\n      (bindings : List (varN × sem_t)) (n : varN) (e : exp) (tenv : type_env),\n      (fn, n, e) ∈ funs ∧\n      type_funs tenv tenvE funs bindings →\n      ∃ (t : sem_t), ALOOKUP bindings fn = some t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_funs_find_recfun",
+   "statement": "theorem type_funs_find_recfun :\n    ∀ (fn : varN) (env : List (varN × sem_t)) (funs : List (varN × varN × exp))\n      (bindings : List (varN × sem_t)) (e : exp) (tenv : type_env)\n      (tenvE : tenv_val_exp) (t : sem_t),\n      ALOOKUP bindings fn = some t ∧\n      type_funs tenv tenvE funs bindings →\n      ∃ (n : varN) (e : exp), find_recfun fn funs = some (n, e)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_recfun_lookup",
+   "statement": "theorem type_recfun_lookup :\n    ∀ (fn : varN) (funs : List (varN × varN × exp)) (n : varN) (e : exp)\n      (tenv : type_env) (tenvE : tenv_val_exp) (bindings : List (varN × sem_t))\n      (tvs : Nat) (t1 t2 : sem_t),\n      find_recfun fn funs = some (n, e) ∧\n      type_funs tenv tenvE funs bindings ∧\n      ALOOKUP bindings fn = some (Tfn t1 t2) →\n      type_e tenv (.Bind_name n 0 t1 tenvE) e t2 ∧\n      check_freevars (num_tvs tenvE) [] (Tfn t1 t2)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_funs_distinct",
+   "statement": "theorem type_funs_distinct :\n    ∀ (tenv : type_env) (tenvE : tenv_val_exp) (funs : List (varN × varN × exp))\n      (bindings : List (varN × sem_t)),\n      type_funs tenv tenvE funs bindings →\n      ALL_DISTINCT (funs.map (fun (x, _, _) => x))"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_e_subst_lem",
+   "statement": "theorem type_e_subst_lem :\n    ∀ (x : mlstring) (t1 : sem_t)\n      (tenv : type_env) (tenvE : tenv_val_exp) (e : exp) (t : sem_t)\n      (targs : List sem_t) (tvs : Nat) (targs' : List sem_t),\n      type_e tenv (.Bind_name x 0 t1 (bind_tvar targs.length tenvE)) e t ∧\n      num_tvs tenvE = 0 ∧\n      tenv_abbrev_ok tenv.t ∧\n      tenv_ctor_ok tenv.c ∧\n      tenv_val_ok tenv.v ∧\n      tenv_val_exp_ok (bind_tvar targs.length tenvE) ∧\n      EVERY (check_freevars tvs []) targs ∧\n      check_freevars targs.length [] t1 →\n      type_e tenv (.Bind_name x 0 (deBruijn_subst 0 targs t1) (bind_tvar tvs tenvE))\n        e (deBruijn_subst 0 targs t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "mem_type_def_to_ctMap",
+   "statement": "theorem mem_type_def_to_ctMap :\n    ∀ (tenvT : tenv_abbrev) (next : Nat)\n      (tds : List (List tvarN × mlstring × List (conN × List ast_t)))\n      (ids : List type_ident) (stmp : stamp)\n      (x : List tvarN × List sem_t × type_ident),\n      (stmp, x) ∈ type_def_to_ctMap tenvT next tds ids ∧\n      tds.length = ids.length →\n      ∃ (cn : conN) (i : Nat), stmp = .TypeStamp cn i ∧ next ≤ i ∧ i < next + tds.length"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "ctMap_ok_merge_imp",
+   "statement": "theorem ctMap_ok_merge_imp :\n    ∀ (ctMap1 ctMap2 : ctMap),\n      Set.Disjoint\n        (Finmap.FRANGE (Finmap.o_f (fun p => p.2.2) ctMap1))\n        (Finmap.FRANGE (Finmap.o_f (fun p => p.2.2) ctMap2)) ∧\n      ctMap_ok ctMap1 ∧ ctMap_ok ctMap2 →\n      ctMap_ok (Finmap.FUNION ctMap1 ctMap2)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "ctMap_ok_lookup",
+   "statement": "theorem ctMap_ok_lookup :\n    ∀ (ctMap_ : ctMap) (cn : conN) (tvs : List tvarN) (ts : List sem_t)\n      (ti : type_ident) (tn : stamp),\n      ctMap_ok ctMap_ ∧ Finmap.FLOOKUP ctMap_ tn = some (tvs, ts, ti) →\n      EVERY (check_freevars 0 tvs) ts"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_def_to_ctMap_mem",
+   "statement": "theorem type_def_to_ctMap_mem :\n    ∀ (tenvT : tenv_abbrev) (next : Nat)\n      (tds : List (List tvarN × mlstring × List (conN × List ast_t)))\n      (tids : List type_ident) (k : stamp) (x : List tvarN × List sem_t × type_ident),\n      ALOOKUP (type_def_to_ctMap tenvT next tds tids) k = some x ∧\n      tds.length = tids.length →\n      x.2.2 ∈ tids"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "fupdate2_union",
+   "statement": "theorem fupdate2_union :\n    ∀ (m : Finmap stamp (List tvarN × List sem_t × type_ident))\n      (a1 a2 : List (stamp × (List tvarN × List sem_t × type_ident))),\n      Finmap.FUPDATE_LIST (Finmap.FUPDATE_LIST m a1) a2 =\n      Finmap.FUNION (Finmap.FUPDATE_LIST Finmap.FEMPTY a2) (Finmap.FUPDATE_LIST m a1)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "ctMap_ok_type_defs",
+   "statement": "theorem ctMap_ok_type_defs :\n    ∀ (tenvT : tenv_abbrev) (next : Nat)\n      (tds : List (List tvarN × mlstring × List (conN × List ast_t)))\n      (tids : List type_ident),\n      ALL_DISTINCT tids ∧\n      DISJOINT (fun x => x ∈ tids) (fun x => x ∈ prim_type_nums) ∧\n      tds.length = tids.length ∧\n      check_ctor_tenv tenvT tds ∧\n      tenv_abbrev_ok tenvT →\n      ctMap_ok (Finmap.FUPDATE_LIST Finmap.FEMPTY (type_def_to_ctMap tenvT next tds tids).reverse)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "nsLookup_add_tenvE1",
+   "statement": "theorem nsLookup_add_tenvE1 :\n    ∀ (tenvE : tenv_val_exp) (tenvV : tenv_val) (n : mlstring) (tvs : Nat)\n      (t : sem_t) (tvs2 : Nat),\n      check_freevars tvs2 [] t ∧\n      tveLookup n tvs tenvE = some (tvs2, t) →\n      nsLookup (add_tenvE tenvE tenvV) (.Short n) = some (tvs2, t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "nsLookup_add_tenvE2",
+   "statement": "theorem nsLookup_add_tenvE2 :\n    ∀ (tenvE : tenv_val_exp) (tenvV : tenv_val) (n : mlstring) (tvs : Nat)\n      (t : sem_t) (tvs2 : Nat),\n      tveLookup n tvs tenvE = none ∧\n      nsLookup tenvV (.Short n) = some (tvs2, t) →\n      nsLookup (add_tenvE tenvE tenvV) (.Short n) = some (tvs2, t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "nsLookup_add_tenvE3",
+   "statement": "theorem nsLookup_add_tenvE3 :\n    ∀ (tenvE : tenv_val_exp) (tenvV : tenv_val) (n : cml_id modN varN) (t : sem_t)\n      (tvs2 : Nat) (mn : modN),\n      nsLookup tenvV (.Long mn n) = some (tvs2, t) →\n      nsLookup (add_tenvE tenvE tenvV) (.Long mn n) = some (tvs2, t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "add_tenvE_bvl",
+   "statement": "theorem add_tenvE_bvl :\n    ∀ (n : Nat) (bindings : List (mlstring × sem_t)) (tenvE : tenv_val_exp) (tenvV : tenv_val),\n      add_tenvE (bind_var_list n bindings tenvE) tenvV =\n      nsBindList (bindings.map (fun (x, t) => (x, (n, t)))) (add_tenvE tenvE tenvV)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_v_freevars",
+   "statement": "theorem type_v_freevars :\n    ∀ (tvs : Nat) (tenvC : ctMap) (tenvS : tenv_store) (v_ : v) (t : sem_t),\n      type_v tvs tenvC tenvS v_ t → check_freevars tvs [] t"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_subst_thm",
+   "statement": "theorem type_subst_thm :\n    ∀ (targs : List sem_t) (tvs' : Nat),\n    ∀ (tvs : Nat) (ctMap_ : ctMap) (tenvS : tenv_store) (v_ : v) (t : sem_t),\n      type_v tvs ctMap_ tenvS v_ t →\n      tvs = targs.length ∧\n      ctMap_ok ctMap_ ∧\n      EVERY (check_freevars tvs' []) targs ∧\n      check_freevars targs.length [] t →\n      type_v tvs' ctMap_ tenvS v_ (deBruijn_subst 0 targs t)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "check_ctor_tenv_ok",
+   "statement": "theorem check_ctor_tenv_ok :\n    ∀ (tenvT : tenv_abbrev)\n      (tds : List (List tvarN × mlstring × List (conN × List ast_t)))\n      (tis : List type_ident),\n      tds.length = tis.length ∧\n      check_ctor_tenv tenvT tds ∧\n      tenv_abbrev_ok tenvT →\n      tenv_ctor_ok (build_ctor_tenv tenvT tds tis)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_d_check_uniq",
+   "statement": "theorem type_d_check_uniq :\n    (∀ (check : Bool) (tenv : type_env) (d : dec) (tdecs : Set type_ident) (new_tenv : type_env),\n      type_d check tenv d tdecs new_tenv →\n      type_d false tenv d tdecs new_tenv) ∧\n    (∀ (check : Bool) (tenv : type_env) (d : List dec) (tdecs : Set type_ident) (new_tenv : type_env),\n      type_ds check tenv d tdecs new_tenv →\n      type_ds false tenv d tdecs new_tenv)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "extend_dec_tenv_ok",
+   "statement": "theorem extend_dec_tenv_ok :\n    ∀ (tenv tenv' : type_env),\n      tenv_ok tenv ∧ tenv_ok tenv' → tenv_ok (extend_dec_tenv tenv tenv')"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_d_tenv_ok_helper",
+   "statement": "theorem type_d_tenv_ok_helper :\n    (∀ (check : Bool) (tenv : type_env) (d : dec) (tdecs : Set type_ident) (tenv' : type_env),\n      type_d check tenv d tdecs tenv' →\n      tenv_ok tenv →\n      tenv_ok tenv') ∧\n    (∀ (check : Bool) (tenv : type_env) (d : List dec) (tdecs : Set type_ident) (tenv' : type_env),\n      type_ds check tenv d tdecs tenv' →\n      tenv_ok tenv →\n      tenv_ok tenv')"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_d_tenv_ok",
+   "statement": "theorem type_d_tenv_ok :\n    ∀ (check : Bool) (tenv : type_env) (d : dec) (tdecs : Set type_ident) (tenv' : type_env),\n      type_d check tenv d tdecs tenv' ∧\n      tenv_ok tenv →\n      tenv_ok (extend_dec_tenv tenv' tenv)"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_ds_empty",
+   "statement": "theorem type_ds_empty :\n    ∀ (check : Bool) (tenv : type_env) (decls : Set type_ident) (r : type_env),\n      type_ds check tenv [] decls r ↔\n      decls = ∅ ∧ r = { v := nsEmpty, c := nsEmpty, t := nsEmpty }"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "type_ds_sing",
+   "statement": "theorem type_ds_sing :\n    ∀ (check : Bool) (tenv : type_env) (d : dec) (decls : Set type_ident) (r : type_env),\n      type_ds check tenv [d] decls r ↔ type_d check tenv d decls r"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "lookup_tenv_names",
+   "statement": "theorem lookup_tenv_names :\n    ∀ (tenvE : tenv_val_exp) (n : mlstring) (inc : Nat) (x : Nat × sem_t),\n      tveLookup n inc tenvE = some x → n ∈ tenv_names tenvE"
+  },
+  {
+   "file": "TypeSysProps.lean",
+   "name": "tenv_names_bind_var_list",
+   "statement": "theorem tenv_names_bind_var_list :\n    ∀ (n : Nat) (l1 : List (mlstring × sem_t)) (l2 : tenv_val_exp),\n      tenv_names (bind_var_list n l1 l2) = Set.union (fun x => x ∈ l1.map Prod.fst) (tenv_names l2)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_tenv_refl",
+   "statement": "theorem weak_tenv_refl :\n    ∀ (tenv : type_env), tenv_val_ok tenv.v → weak_tenv tenv tenv"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weakS_refl",
+   "statement": "theorem weakS_refl :\n    ∀ (tenvS : tenv_store), weakS tenvS tenvS"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_tenvE_freevars",
+   "statement": "theorem weak_tenvE_freevars :\n    ∀ (tenvE tenvE' : tenv_val_exp) (tvs : List tvarN) (t : sem_t),\n      weak_tenvE tenvE' tenvE ∧ check_freevars (num_tvs tenvE) tvs t →\n      check_freevars (num_tvs tenvE') tvs t"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_tenvE_bind",
+   "statement": "theorem weak_tenvE_bind :\n    ∀ (tenvE tenvE' : tenv_val_exp) (n : mlstring) (tvs : Nat) (t : sem_t),\n      weak_tenvE tenvE' tenvE →\n      weak_tenvE (.Bind_name n tvs t tenvE') (.Bind_name n tvs t tenvE)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_tenvE_opt_bind",
+   "statement": "theorem weak_tenvE_opt_bind :\n    ∀ (tenvE tenvE' : tenv_val_exp) (n : Option mlstring) (tvs : Nat) (t : sem_t),\n      weak_tenvE tenvE' tenvE →\n      weak_tenvE (opt_bind_name n tvs t tenvE') (opt_bind_name n tvs t tenvE)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_tenvE_bind_tvar",
+   "statement": "theorem weak_tenvE_bind_tvar :\n    ∀ (tenvE tenvE' : tenv_val_exp) (tvs : Nat),\n      weak_tenvE tenvE' tenvE →\n      weak_tenvE (bind_tvar tvs tenvE') (bind_tvar tvs tenvE)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_tenvE_bind_tvar2",
+   "statement": "theorem weak_tenvE_bind_tvar2 :\n    ∀ (tenvE tenvE' : tenv_val_exp) (tvs : Nat),\n      tenv_val_exp_ok tenvE ∧ num_tvs tenvE = 0 ∧ weak_tenvE tenvE' tenvE →\n      weak_tenvE (bind_tvar tvs tenvE') (bind_tvar 0 tenvE)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_tenvE_bind_var_list",
+   "statement": "theorem weak_tenvE_bind_var_list :\n    ∀ (bindings : List (mlstring × sem_t)) (tenvE tenvE' : tenv_val_exp) (tvs : Nat),\n      weak_tenvE tenvE' tenvE →\n      weak_tenvE (bind_var_list tvs bindings tenvE') (bind_var_list tvs bindings tenvE)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "eLookupC_weak",
+   "statement": "theorem eLookupC_weak :\n    ∀ (cn : cml_id modN conN) (tenv tenv' : type_env)\n      (tvs : List tvarN) (ts : List sem_t) (tn : type_ident),\n      weak_tenv tenv' tenv ∧ nsLookup tenv.c cn = some (tvs, ts, tn) →\n      nsLookup tenv'.c cn = some (tvs, ts, tn)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "eLookupV_weak",
+   "statement": "theorem eLookupV_weak :\n    ∀ (n : cml_id modN varN) (tenv tenv' : type_env) (tvs : Nat) (t : sem_t),\n      weak_tenv tenv' tenv ∧ nsLookup tenv.v n = some (tvs, t) →\n      ∃ (tvs' : Nat) (t' : sem_t),\n        nsLookup tenv'.v n = some (tvs', t') ∧ tscheme_inst (tvs, t) (tvs', t')"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_p_weakening",
+   "statement": "theorem type_p_weakening :\n    (∀ (tvs : Nat) (tenv : type_env) (p : pat) (t : sem_t) (bindings : List (varN × sem_t)),\n      type_p tvs tenv p t bindings →\n      ∀ (tenv' : type_env) (tvs' : Nat),\n        tvs' ≥ tvs ∧ weak tenv' tenv → type_p tvs' tenv' p t bindings) ∧\n    (∀ (tvs : Nat) (tenv : type_env) (ps : List pat) (ts : List sem_t)\n      (bindings : List (varN × sem_t)),\n      type_ps tvs tenv ps ts bindings →\n      ∀ (tenv' : type_env) (tvs' : Nat),\n        tvs' ≥ tvs ∧ weak tenv' tenv → type_ps tvs' tenv' ps ts bindings)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_e_weakening_lem",
+   "statement": "theorem type_e_weakening_lem :\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (e : exp) (t : sem_t),\n      type_e tenv tenvE e t →\n      ∀ (tenv' : type_env) (tenvE' : tenv_val_exp),\n        weak tenv' tenv ∧ weak_tenvE tenvE' tenvE → type_e tenv' tenvE' e t) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (es : List exp) (ts : List sem_t),\n      type_es tenv tenvE es ts →\n      ∀ (tenv' : type_env) (tenvE' : tenv_val_exp),\n        weak tenv' tenv ∧ weak_tenvE tenvE' tenvE → type_es tenv' tenvE' es ts) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp)\n      (funs : List (varN × varN × exp)) (bindings : List (varN × sem_t)),\n      type_funs tenv tenvE funs bindings →\n      ∀ (tenv' : type_env) (tenvE' : tenv_val_exp),\n        weak tenv' tenv ∧ weak_tenvE tenvE' tenvE → type_funs tenv' tenvE' funs bindings)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_e_weakening",
+   "statement": "theorem type_e_weakening :\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (e : exp) (t : sem_t)\n      (tenv' : type_env) (tenvE' : tenv_val_exp),\n      type_e tenv tenvE e t ∧ weak tenv' tenv ∧ weak_tenvE tenvE' tenvE →\n      type_e tenv' tenvE' e t) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp) (es : List exp) (ts : List sem_t)\n      (tenv' : type_env) (tenvE' : tenv_val_exp),\n      type_es tenv tenvE es ts ∧ weak tenv' tenv ∧ weak_tenvE tenvE' tenvE →\n      type_es tenv' tenvE' es ts) ∧\n    (∀ (tenv : type_env) (tenvE : tenv_val_exp)\n      (funs : List (varN × varN × exp)) (bindings : List (varN × sem_t))\n      (tenv' : type_env) (tenvE' : tenv_val_exp),\n      type_funs tenv tenvE funs bindings ∧ weak tenv' tenv ∧ weak_tenvE tenvE' tenvE →\n      type_funs tenv' tenvE' funs bindings)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "gt_0",
+   "statement": "theorem gt_0 :\n    ∀ (x : Nat), x ≥ 0"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_ctMap_lookup",
+   "statement": "theorem weak_ctMap_lookup :\n    ∀ (cm cm' : ctMap) (tvs : List tvarN) (ts : List sem_t × type_ident) (stmp : stamp),\n      weakCT cm' cm ∧ Finmap.FLOOKUP cm stmp = some (tvs, ts) →\n      Finmap.FLOOKUP cm' stmp = some (tvs, ts)"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weakCT_refl",
+   "statement": "theorem weakCT_refl :\n    ∀ (cm : ctMap), weakCT cm cm"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weakCT_trans",
+   "statement": "theorem weakCT_trans :\n    ∀ (C1 C2 C3 : ctMap), weakCT C1 C2 ∧ weakCT C2 C3 → weakCT C1 C3"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "disjoint_env_weakCT",
+   "statement": "theorem disjoint_env_weakCT :\n    ∀ (cm cm' : ctMap),\n      Set.Disjoint (Finmap.FDOM cm') (Finmap.FDOM cm) →\n      weakCT (Finmap.FUNION cm' cm) cm"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_tenv_ctor_weakening",
+   "statement": "theorem type_tenv_ctor_weakening :\n    ∀ (cm : ctMap) (tenvC : tenv_ctor) (envC : env_ctor) (cm' : ctMap),\n      weakCT cm' cm ∧ nsAll2 (type_ctor cm) envC tenvC →\n      nsAll2 (type_ctor cm') envC tenvC"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_tenv_val_weakening_lemma",
+   "statement": "theorem type_tenv_val_weakening_lemma :\n    ∀ (cm : ctMap) (tenvS : tenv_store) (tenvV : tenv_val) (envV : env_val)\n      (cm' : ctMap) (tenvS' : tenv_store),\n      weakCT cm' cm ∧\n      weakS tenvS' tenvS ∧\n      nsAll2 (fun (i : cml_id modN varN) (val_ : v) (p : Nat × sem_t) =>\n        ∀ (tvs' : Nat) (cm'' : ctMap) (tenvS'' : tenv_store),\n          (p.1 = 0 ∨ p.1 = tvs') ∧ weakCT cm'' cm ∧ weakS tenvS'' tenvS →\n          type_v tvs' cm'' tenvS'' val_ p.2) envV tenvV →\n      nsAll2 (fun (_ : cml_id modN varN) (val_ : v) (p : Nat × sem_t) =>\n        type_v p.1 cm' tenvS' val_ p.2) envV tenvV"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_v_weakening",
+   "statement": "theorem type_v_weakening :\n    ∀ (tvs : Nat) (cm : ctMap) (tenvS : tenv_store) (val_ : v) (t : sem_t),\n      type_v tvs cm tenvS val_ t →\n      ∀ (tvs' : Nat) (cm' : ctMap) (tenvS' : tenv_store),\n        (tvs = 0 ∨ tvs = tvs') ∧ weakCT cm' cm ∧ weakS tenvS' tenvS →\n        type_v tvs' cm' tenvS' val_ t"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_all_env_weakening",
+   "statement": "theorem type_all_env_weakening :\n    ∀ (cm : ctMap) (tenvS : tenv_store) (tenv : type_env) (env : sem_env)\n      (cm' : ctMap) (tenvS' : tenv_store),\n      weakCT cm' cm ∧ weakS tenvS' tenvS ∧ type_all_env cm tenvS env tenv →\n      type_all_env cm' tenvS' env tenv"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_sv_weakening",
+   "statement": "theorem type_sv_weakening :\n    ∀ (cm : ctMap) (tenvS : tenv_store) (st : store_t) (sv : store_v v)\n      (cm' : ctMap) (tenvS' : tenv_store),\n      type_sv cm tenvS sv st ∧ weakCT cm' cm ∧ weakS tenvS' tenvS →\n      type_sv cm' tenvS' sv st"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "type_s_weakening",
+   "statement": "theorem type_s_weakening :\n    ∀ (cm : ctMap) (tenvS : tenv_store) (st : store v) (cm' : ctMap),\n      type_s cm st tenvS ∧ weakCT cm' cm →\n      type_s cm' st tenvS"
+  },
+  {
+   "file": "Weakening.lean",
+   "name": "weak_tenv_extend_dec_tenv",
+   "statement": "theorem weak_tenv_extend_dec_tenv :\n    ∀ (tenv1 tenv2 tenv3 : type_env),\n      tenv_val_ok tenv1.v ∧ weak_tenv tenv2 tenv3 →\n      weak_tenv (extend_dec_tenv tenv1 tenv2) (extend_dec_tenv tenv1 tenv3)"
+  }
+ ]
+}
