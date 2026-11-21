@@ -1,0 +1,25 @@
+2026-11-21T03:03:10Z	weak_tenv_refl	proved	direct
+2026-11-21T03:03:10Z	weakS_refl	proved	direct
+2026-11-21T03:03:10Z	weak_tenvE_freevars	proved	direct
+2026-11-21T03:03:10Z	weak_tenvE_bind	proved	direct
+2026-11-21T03:03:10Z	weak_tenvE_opt_bind	proved	direct
+2026-11-21T03:03:10Z	weak_tenvE_bind_tvar	proved	direct
+2026-11-21T03:03:10Z	weak_tenvE_bind_tvar2	proved	direct
+2026-11-21T03:03:10Z	weak_tenvE_bind_var_list	proved	direct
+2026-11-21T03:03:10Z	eLookupC_weak	proved	direct
+2026-11-21T03:03:10Z	eLookupV_weak	proved	direct
+2026-11-21T03:05:09Z	gt_0	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	weak_ctMap_lookup	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	weakCT_refl	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	weakCT_trans	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	disjoint_env_weakCT	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	type_tenv_ctor_weakening	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	type_tenv_val_weakening_lemma	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	type_p_weakening	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	type_e_weakening_lem	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:09Z	type_e_weakening	proved	direct / mutual structural recursion on derivations
+2026-11-21T03:05:53Z	type_v_weakening	proved	direct / induction on type_v
+2026-11-21T03:05:53Z	type_all_env_weakening	proved	direct / induction on type_v
+2026-11-21T03:05:53Z	type_sv_weakening	proved	direct / induction on type_v
+2026-11-21T03:05:53Z	type_s_weakening	proved	direct / induction on type_v
+2026-11-21T03:05:53Z	weak_tenv_extend_dec_tenv	proved	direct / induction on type_v

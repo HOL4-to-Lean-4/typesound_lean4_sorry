@@ -255,31 +255,104 @@ Theorem explode_aux_thm:
 -/
 theorem explode_aux_thm (max n : Nat) (ls : String) :
     n + max = ls.data.length →
-    explode_aux (.strlit ls) n max = HOL4.DROP n ls.data := sorry
+    explode_aux (.strlit ls) n max = HOL4.DROP n ls.data := by
+  induction max generalizing n with
+  | zero => intro h; simp [explode_aux, DROP]; show ls.toList.length ≤ n; show ls.data.length ≤ n; omega
+  | succ k ih =>
+    intro h
+    simp only [explode_aux, strsub]
+    rw [ih (n+1) (by omega)]
+    show ls.toList[n]! :: List.drop (n+1) ls.toList = List.drop n ls.toList
+    have hn : n < ls.toList.length := by show n < ls.data.length; omega
+    rw [List.drop_eq_getElem_cons hn, getElem!_pos ls.toList n hn]
 /- HOL4:
 Theorem explode_thm[simp]:
    explode (strlit ls) = ls
 -/
 theorem explode_thm (ls : String) :
-    explode (.strlit ls) = ls.data := sorry
+    explode (.strlit ls) = ls.data := by
+  unfold explode
+  rw [explode_aux_thm]
+  · simp [DROP]
+  · simp [strlen]; rfl
 /- HOL4:
 Theorem explode_implode[simp]:
    ∀x. explode (implode x) = x
 -/
 theorem explode_implode (x : String) :
-    explode (implode x) = x.data := sorry
+    explode (implode x) = x.data := explode_thm x
 /- HOL4:
 Theorem implode_explode[simp]:
    ∀x. implode (explode x) = x
 -/
 theorem implode_explode (x : mlstring) :
-    implode (String.ofList (explode x)) = x := sorry
+    implode (String.ofList (explode x)) = x := by
+  cases x with
+  | strlit s => rw [explode_thm]; show mlstring.strlit (String.ofList s.toList) = _; rw [String.ofList_toList]
 /- HOL4:
 Theorem explode_11[simp]:
    ∀s1 s2. (explode s1 = explode s2) ⇔ (s1 = s2)
 -/
 theorem explode_11 (s1 s2 : mlstring) :
-    explode s1 = explode s2 ↔ s1 = s2 := sorry
+    explode s1 = explode s2 ↔ s1 = s2 := by
+  constructor
+  · intro h
+    cases s1 with
+    | strlit a =>
+      cases s2 with
+      | strlit b =>
+        rw [explode_thm, explode_thm] at h
+        have : a = b := String.toList_inj.mp h
+        rw [this]
+  · rintro rfl; rfl
+theorem mlstring_explode_implode_ofList (l : List Char) :
+    explode (implode (String.ofList l)) = l := by
+  rw [explode_implode]; exact String.toList_ofList
+
+theorem mlstring_go_shape {α : Type} (P : α → Bool) (rest : List α) :
+    ∃ H T, List.splitOnP.go P rest [] = H :: T ∧
+      ∀ acc, List.splitOnP.go P rest acc = (acc.reverse ++ H) :: T := by
+  induction rest with
+  | nil => exact ⟨[], [], by simp [List.splitOnP.go], by simp [List.splitOnP.go]⟩
+  | cons a t ih =>
+    obtain ⟨H, T, h1, h2⟩ := ih
+    by_cases hP : P a = true
+    · exact ⟨[], List.splitOnP.go P t [], by simp [List.splitOnP.go, hP], by simp [List.splitOnP.go, hP]⟩
+    · refine ⟨a :: H, T, ?_, ?_⟩
+      · simp [List.splitOnP.go, hP, h2]
+      · intro acc; simp [List.splitOnP.go, hP, h2]
+
+theorem mlstring_tokens_aux_go (P : Char → Bool) (s : String) :
+    ∀ (len n : Nat) (ss : List Char), n + len = s.toList.length →
+    (tokens_aux P (.strlit s) ss n len).map explode =
+      (List.splitOnP.go P (s.toList.drop n) ss).filter (fun g => !g.isEmpty) := by
+  intro len
+  induction len with
+  | zero =>
+    intro n ss h
+    rw [List.drop_eq_nil_iff.mpr (by omega)]
+    cases ss with
+    | nil => simp [tokens_aux, List.splitOnP.go]
+    | cons a t =>
+      simp only [tokens_aux, List.splitOnP.go, List.map_cons, List.map_nil, mlstring_explode_implode_ofList]
+      simp
+  | succ k ih =>
+    intro n ss h
+    have hn : n < s.toList.length := by omega
+    rw [List.drop_eq_getElem_cons hn]
+    have hsub : strsub (.strlit s) n = s.toList[n] := by simp only [strsub]; exact getElem!_pos s.toList n hn
+    cases ss with
+    | nil =>
+      simp only [tokens_aux, List.splitOnP.go, hsub]
+      by_cases hP : P s.toList[n] = true
+      · simp only [hP, if_true]; rw [ih (n+1) [] (by omega)]; simp
+      · simp only [hP, Bool.false_eq_true, if_false]; rw [ih (n+1) _ (by omega)]
+    | cons a t =>
+      simp only [tokens_aux, List.splitOnP.go, hsub]
+      by_cases hP : P s.toList[n] = true
+      · simp only [hP, if_true, List.map_cons, mlstring_explode_implode_ofList]; rw [ih (n+1) [] (by omega)]; simp
+      · simp only [hP, Bool.false_eq_true, if_false]; rw [ih (n+1) _ (by omega)]
+
 /- HOL4:
 Theorem TOKENS_eq_tokens_aux:
    !P ls ss n len. (n + len = LENGTH (explode ls)) ==>
@@ -304,10 +377,45 @@ theorem TOKENS_eq_tokens_aux (P : Char → Bool) (ls : mlstring) (ss : List Char
       else if len ≠ 0 then
         (h :: t).reverse :: HOL4.TOKENS P (HOL4.DROP n (explode ls))
       else [(h :: t).reverse]
-    | [] => HOL4.TOKENS P (HOL4.DROP n (explode ls)) := sorry
+    | [] => HOL4.TOKENS P (HOL4.DROP n (explode ls)) := by
+  intro hlen
+  cases ls with
+  | strlit s =>
+  rw [explode_thm] at hlen ⊢
+  rw [mlstring_tokens_aux_go P s len n ss hlen]
+  show _ = match ss with
+    | h :: t =>
+      if len ≠ 0 ∧ ¬ P (s.toList[n]!) then
+        ((h :: t).reverse ++ (HOL4.TOKENS P (s.toList.drop n)).head!) ::
+          (HOL4.TOKENS P (s.toList.drop n)).tail
+      else if len ≠ 0 then
+        (h :: t).reverse :: HOL4.TOKENS P (s.toList.drop n)
+      else [(h :: t).reverse]
+    | [] => HOL4.TOKENS P (s.toList.drop n)
+  cases ss with
+  | nil => rfl
+  | cons h t =>
+    simp only []
+    cases len with
+    | zero =>
+      rw [List.drop_eq_nil_iff.mpr (by show s.toList.length ≤ n; show s.data.length ≤ n; omega)]
+      simp [List.splitOnP.go]
+    | succ k =>
+      have hn : n < s.toList.length := by show n < s.data.length; omega
+      rw [List.drop_eq_getElem_cons hn, getElem!_pos s.toList n hn]
+      simp only [TOKENS, List.splitOnP, List.splitOnP.go]
+      obtain ⟨H, T, h1, h2⟩ := mlstring_go_shape P (s.toList.drop (n+1))
+      by_cases hP : P s.toList[n] = true
+      · simp [hP]
+      · simp [hP, h2]; rfl
 /- HOL4:
 Theorem TOKENS_eq_tokens:
    !P ls.(MAP explode (tokens P ls) = TOKENS P (explode ls))
 -/
 theorem TOKENS_eq_tokens (P : Char → Bool) (ls : mlstring) :
-    (tokens P ls).map explode = HOL4.TOKENS P (explode ls) := sorry
+    (tokens P ls).map explode = HOL4.TOKENS P (explode ls) := by
+  unfold tokens
+  rw [TOKENS_eq_tokens_aux P ls [] 0 (strlen ls)]
+  · simp [DROP]
+  · cases ls with
+    | strlit s => rw [explode_thm]; simp [strlen]; rfl

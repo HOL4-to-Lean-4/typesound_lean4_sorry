@@ -177,22 +177,23 @@ def shift_lookup_64 : shift → word64 → Nat → word64
    (env:'v sem_env) with v := env.v = env
 -/
 theorem with_same_v (env : sem_env) :
-    sem_env.mk env.v_ env.c = env := sorry
+    sem_env.mk env.v_ env.c = env := by cases env; rfl
 /- HOL4: Theorem unchanged_env[simp]:
    !(env : 'a sem_env). <| v := env.v; c := env.c |> = env
 -/
 theorem unchanged_env (env : sem_env) :
-    sem_env.mk env.v_ env.c = env := sorry
+    sem_env.mk env.v_ env.c = env := by cases env; rfl
 /- HOL4: Theorem with_same_clock:
    (st:'ffi state) with clock := st.clock = st
 -/
 theorem with_same_clock {ffi : Type} (st : cml_state ffi) :
-    { st with clock := st.clock } = st := sorry
+    { st with clock := st.clock } = st := rfl
 /- HOL4: Theorem Boolv_11[simp]:
    Boolv b1 = Boolv b2 <=> (b1 = b2)
 -/
 theorem Boolv_11 (b1 b2 : Bool) :
-    Boolv b1 = Boolv b2 ↔ b1 = b2 := sorry
+    Boolv b1 = Boolv b2 ↔ b1 = b2 := by
+  cases b1 <;> cases b2 <;> simp [Boolv]
 /- HOL4: Theorem extend_dec_env_assoc[simp]:
    !env1 env2 env3.
     extend_dec_env env1 (extend_dec_env env2 env3)
@@ -200,7 +201,30 @@ theorem Boolv_11 (b1 b2 : Bool) :
 -/
 theorem extend_dec_env_assoc (env1 env2 env3 : sem_env) :
     extend_dec_env env1 (extend_dec_env env2 env3) =
-    extend_dec_env (extend_dec_env env1 env2) env3 := sorry
+    extend_dec_env (extend_dec_env env1 env2) env3 := by
+  simp [extend_dec_env, sem_env.v_, sem_env.c, nsAppend_assoc]
+mutual
+theorem sp_pat_bindings_accum_p : ∀ (p : pat) (acc : List varN),
+      pat_bindings p acc = pat_bindings p [] ++ acc
+  | .Pany, acc => by simp [pat_bindings]
+  | .Pvar n, acc => by simp [pat_bindings]
+  | .Plit _, acc => by simp [pat_bindings]
+  | .Pcon _ ps, acc => by simp only [pat_bindings]; exact sp_pat_bindings_accum_ps ps acc
+  | .Pref p, acc => by simp only [pat_bindings]; exact sp_pat_bindings_accum_p p acc
+  | .Pas p i, acc => by
+      simp only [pat_bindings]
+      rw [sp_pat_bindings_accum_p p (i :: acc), sp_pat_bindings_accum_p p [i]]; simp
+  | .Ptannot p _, acc => by simp only [pat_bindings]; exact sp_pat_bindings_accum_p p acc
+
+theorem sp_pat_bindings_accum_ps : ∀ (ps : List pat) (acc : List varN),
+      pats_bindings ps acc = pats_bindings ps [] ++ acc
+  | [], acc => by simp [pats_bindings]
+  | p :: ps, acc => by
+      simp only [pats_bindings]
+      rw [sp_pat_bindings_accum_ps ps (pat_bindings p acc), sp_pat_bindings_accum_ps ps (pat_bindings p []),
+        sp_pat_bindings_accum_p p acc]; simp
+end
+
 /- HOL4: Theorem pat_bindings_accum:
    (!p acc. pat_bindings p acc = pat_bindings p [] ++ acc) /\
    (!ps acc. pats_bindings ps acc = pats_bindings ps [] ++ acc)
@@ -209,7 +233,322 @@ theorem pat_bindings_accum :
     (∀ (p : pat) (acc : List varN),
       pat_bindings p acc = pat_bindings p [] ++ acc) ∧
     (∀ (ps : List pat) (acc : List varN),
-      pats_bindings ps acc = pats_bindings ps [] ++ acc) := sorry
+      pats_bindings ps acc = pats_bindings ps [] ++ acc) := ⟨sp_pat_bindings_accum_p, sp_pat_bindings_accum_ps⟩
+theorem sp_eq_mk_iff {α β : Type} (p : α × β) (a : α) (b : β) : (p = (a, b)) ↔ (p.1 = a ∧ p.2 = b) := by
+  cases p; simp
+
+set_option maxHeartbeats 4000000 in
+
+set_option linter.deprecated false in
+
+theorem sp_do_app_cases_aux {ffi : Type} :
+    ∀ (s : List (store_v v)) (t : ffi_state ffi) (op_ : op) (vs : List v)
+      (st' : List (store_v v) × ffi_state ffi) (r : result v v),
+    do_app (s, t) op_ vs = some (st', r) ↔
+    ( -- ListAppend
+      (∃ x1 x2 xs ys, op_ = .ListAppend ∧ vs = [x1, x2] ∧
+        v_to_list x1 = some xs ∧ v_to_list x2 = some ys ∧
+        st' = (s, t) ∧ r = .Rval (list_to_v (xs ++ ys))) ∨
+      -- Shift W8
+      (∃ sh n w, op_ = .Shift .W8 sh n ∧ vs = [.Litv (.Word8 w)] ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.Word8 (shift8_lookup sh w n)))) ∨
+      -- Shift W64
+      (∃ sh n w, op_ = .Shift .W64 sh n ∧ vs = [.Litv (.Word64 w)] ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.Word64 (shift64_lookup sh w n)))) ∨
+      -- Equality
+      (∃ v1 v2 b, op_ = .Equality ∧ vs = [v1, v2] ∧
+        do_eq v1 v2 = .Eq_val b ∧
+        st' = (s, t) ∧ r = .Rval (Boolv b)) ∨
+      -- Opassign
+      (∃ b lnum val_ s', op_ = .Opassign ∧ vs = [.Loc b lnum, val_] ∧
+        store_assign lnum (.Refv val_) s = some s' ∧
+        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨
+      -- Opref
+      (∃ val_ s' n, op_ = .Opref ∧ vs = [val_] ∧
+        store_alloc (.Refv val_) s = (s', n) ∧
+        st' = (s', t) ∧ r = .Rval (.Loc true n)) ∨
+      -- Opderef
+      (∃ b n val_, op_ = .Opderef ∧ vs = [.Loc b n] ∧
+        store_lookup n s = some (.Refv val_) ∧
+        st' = (s, t) ∧ r = .Rval val_) ∨
+      -- Aw8alloc
+      (∃ n w, op_ = .Aw8alloc ∧ vs = [.Litv (.IntLit n), .Litv (.Word8 w)] ∧
+        n < 0 ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ n w s' lnum, op_ = .Aw8alloc ∧ vs = [.Litv (.IntLit n), .Litv (.Word8 w)] ∧
+        ¬ n < 0 ∧
+        store_alloc (.W8array (REPLICATE n.natAbs w)) s = (s', lnum) ∧
+        st' = (s', t) ∧ r = .Rval (.Loc true lnum)) ∨
+      -- Aw8sub
+      (∃ b lnum i ws, op_ = .Aw8sub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        i < 0 ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b lnum i ws, op_ = .Aw8sub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        ¬ i < 0 ∧ i.natAbs ≥ ws.length ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b lnum i ws, op_ = .Aw8sub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ ws.length ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.Word8 (EL i.natAbs ws)))) ∨
+      -- Aw8sub_unsafe
+      (∃ b lnum i ws, op_ = .Aw8sub_unsafe ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ ws.length ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.Word8 (EL i.natAbs ws)))) ∨
+      -- Aw8length
+      (∃ b n ws, op_ = .Aw8length ∧ vs = [.Loc b n] ∧
+        store_lookup n s = some (.W8array ws) ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.IntLit (Int.ofNat ws.length)))) ∨
+      -- Aw8update
+      (∃ b lnum i w ws, op_ = .Aw8update ∧
+        vs = [.Loc b lnum, .Litv (.IntLit i), .Litv (.Word8 w)] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        i < 0 ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b lnum i w ws, op_ = .Aw8update ∧
+        vs = [.Loc b lnum, .Litv (.IntLit i), .Litv (.Word8 w)] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        ¬ i < 0 ∧ i.natAbs ≥ ws.length ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b lnum i w ws s', op_ = .Aw8update ∧
+        vs = [.Loc b lnum, .Litv (.IntLit i), .Litv (.Word8 w)] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ ws.length ∧
+        store_assign lnum (.W8array (LUPDATE w i.natAbs ws)) s = some s' ∧
+        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨
+      -- Aw8update_unsafe
+      (∃ b lnum i w ws s', op_ = .Aw8update_unsafe ∧
+        vs = [.Loc b lnum, .Litv (.IntLit i), .Litv (.Word8 w)] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ ws.length ∧
+        store_assign lnum (.W8array (LUPDATE w i.natAbs ws)) s = some s' ∧
+        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨
+      -- CopyStrStr
+      (∃ strng off len, op_ = .CopyStrStr ∧
+        vs = [.Litv (.StrLit strng), .Litv (.IntLit off), .Litv (.IntLit len)] ∧
+        copy_array (explode strng, off) len none = none ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ strng off len cs, op_ = .CopyStrStr ∧
+        vs = [.Litv (.StrLit strng), .Litv (.IntLit off), .Litv (.IntLit len)] ∧
+        copy_array (explode strng, off) len none = some cs ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.StrLit (implode (String.mk cs))))) ∨
+      -- CopyStrAw8
+      (∃ strng off len b dst dstoff ws, op_ = .CopyStrAw8 ∧
+        vs = [.Litv (.StrLit strng), .Litv (.IntLit off), .Litv (.IntLit len),
+              .Loc b dst, .Litv (.IntLit dstoff)] ∧
+        store_lookup dst s = some (.W8array ws) ∧
+        copy_array (explode strng, off) len (some (ws_to_chars ws, dstoff)) = none ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ strng off len b dst dstoff ws cs s', op_ = .CopyStrAw8 ∧
+        vs = [.Litv (.StrLit strng), .Litv (.IntLit off), .Litv (.IntLit len),
+              .Loc b dst, .Litv (.IntLit dstoff)] ∧
+        store_lookup dst s = some (.W8array ws) ∧
+        copy_array (explode strng, off) len (some (ws_to_chars ws, dstoff)) = some cs ∧
+        store_assign dst (.W8array (chars_to_ws cs)) s = some s' ∧
+        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨
+      -- CopyAw8Str
+      (∃ b src off len ws, op_ = .CopyAw8Str ∧
+        vs = [.Loc b src, .Litv (.IntLit off), .Litv (.IntLit len)] ∧
+        store_lookup src s = some (.W8array ws) ∧
+        copy_array (ws, off) len none = none ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b src off len ws ws', op_ = .CopyAw8Str ∧
+        vs = [.Loc b src, .Litv (.IntLit off), .Litv (.IntLit len)] ∧
+        store_lookup src s = some (.W8array ws) ∧
+        copy_array (ws, off) len none = some ws' ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.StrLit (implode (String.mk (ws_to_chars ws')))))) ∨
+      -- CopyAw8Aw8
+      (∃ b src off len b' dst dstoff ws ds, op_ = .CopyAw8Aw8 ∧
+        vs = [.Loc b src, .Litv (.IntLit off), .Litv (.IntLit len),
+              .Loc b' dst, .Litv (.IntLit dstoff)] ∧
+        store_lookup src s = some (.W8array ws) ∧
+        store_lookup dst s = some (.W8array ds) ∧
+        copy_array (ws, off) len (some (ds, dstoff)) = none ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b src off len b' dst dstoff ws ds ws' s', op_ = .CopyAw8Aw8 ∧
+        vs = [.Loc b src, .Litv (.IntLit off), .Litv (.IntLit len),
+              .Loc b' dst, .Litv (.IntLit dstoff)] ∧
+        store_lookup src s = some (.W8array ws) ∧
+        store_lookup dst s = some (.W8array ds) ∧
+        copy_array (ws, off) len (some (ds, dstoff)) = some ws' ∧
+        store_assign dst (.W8array ws') s = some s' ∧
+        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨
+      -- XorAw8Str_unsafe
+      (∃ b dst str_arg bs new_bs s', op_ = .XorAw8Str_unsafe ∧
+        vs = [.Loc b dst, .Litv (.StrLit str_arg)] ∧
+        store_lookup dst s = some (.W8array bs) ∧
+        xor_bytes ((explode str_arg).map (fun c => n2w_8 (ORD c))) bs = some new_bs ∧
+        store_assign dst (.W8array new_bs) s = some s' ∧
+        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨
+      -- Implode
+      (∃ val_ ls, op_ = .Implode ∧ vs = [val_] ∧
+        v_to_char_list val_ = some ls ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.StrLit (implode (String.mk ls))))) ∨
+      -- Explode
+      (∃ strng, op_ = .Explode ∧ vs = [.Litv (.StrLit strng)] ∧
+        st' = (s, t) ∧
+        r = .Rval (list_to_v ((explode strng).map (fun c => .Litv (.Char c))))) ∨
+      -- Strsub
+      (∃ strng i, op_ = .Strsub ∧ vs = [.Litv (.StrLit strng), .Litv (.IntLit i)] ∧
+        i < 0 ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ strng i, op_ = .Strsub ∧ vs = [.Litv (.StrLit strng), .Litv (.IntLit i)] ∧
+        ¬ i < 0 ∧ i.natAbs ≥ strlen strng ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ strng i, op_ = .Strsub ∧ vs = [.Litv (.StrLit strng), .Litv (.IntLit i)] ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ strlen strng ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.Char (EL i.natAbs (explode strng))))) ∨
+      -- Strlen
+      (∃ strng, op_ = .Strlen ∧ vs = [.Litv (.StrLit strng)] ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.IntLit (Int.ofNat (strlen strng))))) ∨
+      -- Strcat
+      (∃ val_ vs' strng, op_ = .Strcat ∧ vs = [val_] ∧
+        v_to_list val_ = some vs' ∧
+        vs_to_string vs' = some strng ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.StrLit strng))) ∨
+      -- VfromList
+      (∃ val_ vs', op_ = .VfromList ∧ vs = [val_] ∧
+        v_to_list val_ = some vs' ∧
+        st' = (s, t) ∧ r = .Rval (.Vectorv vs')) ∨
+      -- Vsub_unsafe
+      (∃ vs' i, op_ = .Vsub_unsafe ∧ vs = [.Vectorv vs', .Litv (.IntLit i)] ∧
+        (0 ≤ i ∧ i.natAbs < vs'.length) ∧
+        st' = (s, t) ∧ r = .Rval (EL i.natAbs vs')) ∨
+      -- Vsub
+      (∃ vs' i, op_ = .Vsub ∧ vs = [.Vectorv vs', .Litv (.IntLit i)] ∧
+        i < 0 ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ vs' i, op_ = .Vsub ∧ vs = [.Vectorv vs', .Litv (.IntLit i)] ∧
+        ¬ i < 0 ∧ i.natAbs ≥ vs'.length ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ vs' i, op_ = .Vsub ∧ vs = [.Vectorv vs', .Litv (.IntLit i)] ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧
+        st' = (s, t) ∧ r = .Rval (EL i.natAbs vs')) ∨
+      -- Vlength
+      (∃ vs', op_ = .Vlength ∧ vs = [.Vectorv vs'] ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.IntLit (Int.ofNat vs'.length)))) ∨
+      -- Aalloc
+      (∃ n val_, op_ = .Aalloc ∧ vs = [.Litv (.IntLit n), val_] ∧
+        n < 0 ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ n val_ s' lnum, op_ = .Aalloc ∧ vs = [.Litv (.IntLit n), val_] ∧
+        ¬ n < 0 ∧
+        store_alloc (.Varray (REPLICATE n.natAbs val_)) s = (s', lnum) ∧
+        st' = (s', t) ∧ r = .Rval (.Loc true lnum)) ∨
+      -- AallocEmpty
+      (∃ s' lnum, op_ = .AallocEmpty ∧ vs = [.Conv none []] ∧
+        store_alloc (.Varray []) s = (s', lnum) ∧
+        st' = (s', t) ∧ r = .Rval (.Loc true lnum)) ∨
+      -- AallocFixed (any argument list)
+      (∃ s' lnum, op_ = .AallocFixed ∧
+        store_alloc (.Varray vs) s = (s', lnum) ∧
+        st' = (s', t) ∧ r = .Rval (.Loc true lnum)) ∨
+      -- Asub
+      (∃ b lnum i vs', op_ = .Asub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧
+        store_lookup lnum s = some (.Varray vs') ∧
+        i < 0 ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b lnum i vs', op_ = .Asub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧
+        store_lookup lnum s = some (.Varray vs') ∧
+        ¬ i < 0 ∧ i.natAbs ≥ vs'.length ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b lnum i vs', op_ = .Asub ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧
+        store_lookup lnum s = some (.Varray vs') ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧
+        st' = (s, t) ∧ r = .Rval (EL i.natAbs vs')) ∨
+      -- Asub_unsafe
+      (∃ b lnum i vs', op_ = .Asub_unsafe ∧ vs = [.Loc b lnum, .Litv (.IntLit i)] ∧
+        store_lookup lnum s = some (.Varray vs') ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧
+        st' = (s, t) ∧ r = .Rval (EL i.natAbs vs')) ∨
+      -- Alength
+      (∃ b n ws, op_ = .Alength ∧ vs = [.Loc b n] ∧
+        store_lookup n s = some (.Varray ws) ∧
+        st' = (s, t) ∧ r = .Rval (.Litv (.IntLit (Int.ofNat ws.length)))) ∨
+      -- Aupdate
+      (∃ b lnum i val_ vs', op_ = .Aupdate ∧
+        vs = [.Loc b lnum, .Litv (.IntLit i), val_] ∧
+        store_lookup lnum s = some (.Varray vs') ∧
+        i < 0 ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b lnum i val_ vs', op_ = .Aupdate ∧
+        vs = [.Loc b lnum, .Litv (.IntLit i), val_] ∧
+        store_lookup lnum s = some (.Varray vs') ∧
+        ¬ i < 0 ∧ i.natAbs ≥ vs'.length ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise sub_exn_v)) ∨
+      (∃ b lnum i val_ vs' s', op_ = .Aupdate ∧
+        vs = [.Loc b lnum, .Litv (.IntLit i), val_] ∧
+        store_lookup lnum s = some (.Varray vs') ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧
+        store_assign lnum (.Varray (LUPDATE val_ i.natAbs vs')) s = some s' ∧
+        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨
+      -- Aupdate_unsafe
+      (∃ b lnum i val_ vs' s', op_ = .Aupdate_unsafe ∧
+        vs = [.Loc b lnum, .Litv (.IntLit i), val_] ∧
+        store_lookup lnum s = some (.Varray vs') ∧
+        ¬ i < 0 ∧ ¬ i.natAbs ≥ vs'.length ∧
+        store_assign lnum (.Varray (LUPDATE val_ i.natAbs vs')) s = some s' ∧
+        st' = (s', t) ∧ r = .Rval (.Conv none [])) ∨
+      -- ConfigGC
+      (∃ i j, op_ = .ConfigGC ∧ vs = [.Litv (.IntLit i), .Litv (.IntLit j)] ∧
+        st' = (s, t) ∧ r = .Rval (.Conv none [])) ∨
+      -- FFI
+      (∃ n conf b lnum ws t' ws' s', op_ = .FFI n ∧
+        vs = [.Litv (.StrLit conf), .Loc b lnum] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        call_FFI t (.ExtCall n) ((explode conf).map (fun c => n2w_8 (ORD c))) ws =
+          .FFI_return t' ws' ∧
+        store_assign lnum (.W8array ws') s = some s' ∧
+        st' = (s', t') ∧ r = .Rval (.Conv none [])) ∨
+      (∃ n conf b lnum ws outcome, op_ = .FFI n ∧
+        vs = [.Litv (.StrLit conf), .Loc b lnum] ∧
+        store_lookup lnum s = some (.W8array ws) ∧
+        call_FFI t (.ExtCall n) ((explode conf).map (fun c => n2w_8 (ORD c))) ws =
+          .FFI_final outcome ∧
+        st' = (s, t) ∧ r = .Rerr (.Rabort (.Rffi_error outcome))) ∨
+      -- Env_id
+      (∃ env gen id_, op_ = .Env_id ∧ vs = [.Env env (gen, id_)] ∧
+        st' = (s, t) ∧ r = .Rval (.Conv none [nat_to_v gen, nat_to_v id_])) ∨
+      (∃ gen id_, op_ = .Env_id ∧ vs = [.Conv none [gen, id_]] ∧
+        st' = (s, t) ∧ r = .Rval (.Conv none [gen, id_])) ∨
+      -- ThunkOp (any argument list; thunk_op_fun stays folded)
+      (∃ th_op, op_ = .ThunkOp th_op ∧
+        thunk_op_fun (s, t) th_op vs = some (st', r)) ∨
+      -- Arith (any argument list)
+      (∃ a ty res, op_ = .Arith a ty ∧
+        EVERY (check_type ty) vs = true ∧
+        do_arith a ty vs = some (.inr res) ∧
+        st' = (s, t) ∧ r = .Rval res) ∨
+      (∃ a ty exn, op_ = .Arith a ty ∧
+        EVERY (check_type ty) vs = true ∧
+        do_arith a ty vs = some (.inl exn) ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise exn)) ∨
+      -- FromTo
+      (∃ ty1 ty2 val_ res, op_ = .FromTo ty1 ty2 ∧ vs = [val_] ∧
+        check_type ty1 val_ = true ∧
+        do_conversion val_ ty1 ty2 = some (.inr res) ∧
+        st' = (s, t) ∧ r = .Rval res) ∨
+      (∃ ty1 ty2 val_ exn, op_ = .FromTo ty1 ty2 ∧ vs = [val_] ∧
+        check_type ty1 val_ = true ∧
+        do_conversion val_ ty1 ty2 = some (.inl exn) ∧
+        st' = (s, t) ∧ r = .Rerr (.Rraise exn)) ∨
+      -- Test
+      (∃ test_ test_ty v1 v2 b, op_ = .Test test_ test_ty ∧ vs = [v1, v2] ∧
+        do_test test_ test_ty v1 v2 = .Eq_val b ∧
+        st' = (s, t) ∧ r = .Rval (Boolv b))) := by
+  intro s t op_ vs st' r
+  constructor
+  · intro h
+    simp only [do_app] at h
+    split at h
+    all_goals (repeat' (split at h))
+    all_goals (first | (simp at h; done) | (try (injection h with h; injection h with h1 h2; subst h1 h2)); first | (simp_all [and_assoc, sp_eq_mk_iff]; done) | (simp_all [and_assoc, sp_eq_mk_iff]; rename_i b _; cases b <;> simp))
+  · simp only [or_imp, forall_exists_index, and_imp]
+    repeat' apply And.intro
+    all_goals (intros; subst_vars; simp [do_app, *])
+
 /- HOL4: Theorem do_app_cases:
    Computed by HOL4 from do_app_def (SIMP_CONV with the case_eq theorems,
    COND_elim_ss, and PULL_EXISTS). Written here as that case expansion. -/
@@ -510,7 +849,16 @@ theorem do_app_cases {ffi : Type} :
       -- Test
       (∃ test_ test_ty v1 v2 b, op_ = .Test test_ test_ty ∧ vs = [v1, v2] ∧
         do_test test_ test_ty v1 v2 = .Eq_val b ∧
-        st' = (s, t) ∧ r = .Rval (Boolv b))) := sorry
+        st' = (s, t) ∧ r = .Rval (Boolv b))) := sp_do_app_cases_aux
+theorem sp_build_rec_env_aux (funs0 funs : List (varN × varN × exp)) (env : sem_env)
+    (env' : «namespace» modN varN v) :
+    funs.foldr (fun (x : varN × varN × exp) e' => nsBind x.1 (v.Recclosure env funs0 x.1) e') env' =
+    nsAppend (alist_to_ns (funs.map (fun (x : varN × varN × exp) => (x.1, v.Recclosure env funs0 x.1)))) env' := by
+  induction funs with
+  | nil => cases env'; rfl
+  | cons a t ih =>
+    simp only [List.foldr_cons, List.map_cons, ih, alist_to_ns_cons, nsAppend_nsBind]
+
 /- HOL4: Theorem build_rec_env_merge:
    !funs funs' env env'.
     build_rec_env funs env env' =
@@ -520,7 +868,8 @@ theorem build_rec_env_merge
     (funs : List (varN × varN × exp)) (env : sem_env)
     (env' : «namespace» modN varN v) :
     build_rec_env funs env env' =
-    nsAppend (alist_to_ns (funs.map (fun (f, _, _) => (f, v.Recclosure env funs f)))) env' := sorry
+    nsAppend (alist_to_ns (funs.map (fun (f, _, _) => (f, v.Recclosure env funs f)))) env' := by
+  exact sp_build_rec_env_aux funs funs env env'
 /- HOL4: Theorem do_con_check_build_conv:
    !tenvC cn vs l.
     do_con_check tenvC cn l ==> ?v. build_conv tenvC cn vs = SOME v
@@ -529,26 +878,78 @@ theorem do_con_check_build_conv
     (tenvC : env_ctor) (cn : Option (cml_id modN conN))
     (vs : List v) (l : Nat) :
     do_con_check tenvC cn l = true →
-    ∃ val, build_conv tenvC cn vs = some val := sorry
+    ∃ val, build_conv tenvC cn vs = some val := by
+  cases cn with
+  | none => simp [build_conv]
+  | some id =>
+    simp only [do_con_check, build_conv]
+    cases h : nsLookup tenvC id with
+    | none => simp
+    | some p => simp
 /- HOL4: Theorem FV_pes_MAP:
    FV_pes pes = BIGUNION (IMAGE (\(p,e). FV e DIFF (IMAGE Short (set (pat_bindings p [])))) (set pes))
 -/
 theorem FV_pes_MAP (pes : List (pat × exp)) :
     FV_pes pes =
     Set.sUnion (Set.image (fun pe => FV pe.2 \ Set.image cml_id.Short (fun x => x ∈ pat_bindings pe.1 []))
-      (fun pe => pe ∈ pes)) := sorry
+      (fun pe => pe ∈ pes)) := by
+  induction pes with
+  | nil =>
+    funext x; apply propext
+    simp only [FV_pes]
+    constructor
+    · intro h; exact h.elim
+    · rintro ⟨s, ⟨a, ha, -⟩, -⟩; simp at ha
+  | cons pe t ih =>
+    obtain ⟨p, e⟩ := pe
+    funext x; apply propext
+    simp only [FV_pes]
+    rw [ih]
+    constructor
+    · rintro (h | ⟨s, ⟨a, ha, rfl⟩, hx⟩)
+      · exact ⟨_, ⟨(p, e), by simp, rfl⟩, h⟩
+      · exact ⟨_, ⟨a, by simp [show a ∈ t from ha], rfl⟩, hx⟩
+    · rintro ⟨s, ⟨a, ha, rfl⟩, hx⟩
+      have ha' : a = (p, e) ∨ a ∈ t := by simpa using ha
+      rcases ha' with rfl | ha'
+      · exact Or.inl hx
+      · exact Or.inr ⟨_, ⟨a, ha', rfl⟩, hx⟩
 /- HOL4: Theorem FV_defs_MAP:
    !ls. FV_defs ls = BIGUNION (IMAGE (\(f,x,e). FV e DIFF {Short x}) (set ls))
 -/
 theorem FV_defs_MAP (ls : List (varN × varN × exp)) :
     FV_defs ls =
     Set.sUnion (Set.image (fun fxe => FV fxe.2.2 \ {cml_id.Short fxe.2.1})
-      (fun fxe => fxe ∈ ls)) := sorry
+      (fun fxe => fxe ∈ ls)) := by
+  induction ls with
+  | nil =>
+    funext x; apply propext
+    simp only [FV_defs]
+    constructor
+    · intro h; exact h.elim
+    · rintro ⟨s, ⟨a, ha, -⟩, -⟩; simp at ha
+  | cons pe t ih =>
+    obtain ⟨f, y, e⟩ := pe
+    funext x; apply propext
+    simp only [FV_defs]
+    rw [ih]
+    constructor
+    · rintro (h | ⟨s, ⟨a, ha, rfl⟩, hx⟩)
+      · exact ⟨_, ⟨(f, y, e), by simp, rfl⟩, h⟩
+      · exact ⟨_, ⟨a, by simp [show a ∈ t from ha], rfl⟩, hx⟩
+    · rintro ⟨s, ⟨a, ha, rfl⟩, hx⟩
+      have ha' : a = (f, y, e) ∨ a ∈ t := by simpa using ha
+      rcases ha' with rfl | ha'
+      · exact Or.inl hx
+      · exact Or.inr ⟨_, ⟨a, ha', rfl⟩, hx⟩
 /- HOL4: Theorem concrete_v_list[simp]:
    !xs. concrete_v_list xs = EVERY concrete_v xs
 -/
 theorem concrete_v_list_thm (xs : List v) :
-    concrete_v_list xs = xs.all concrete_v := sorry
+    concrete_v_list xs = xs.all concrete_v := by
+  induction xs with
+  | nil => simp [concrete_v_list]
+  | cons a t ih => simp [concrete_v_list, ih]
 /- HOL4: Theorem prim_type_cases:
    !ty. ty = BoolT \/ ty = IntT \/ ty = CharT \/ ty = StrT \/
         ty = WordT W8 \/ ty = WordT W64 \/ ty = Float64T
@@ -560,4 +961,7 @@ theorem prim_type_cases (ty : prim_type) :
     ty = .StrT ∨
     ty = .WordT .W8 ∨
     ty = .WordT .W64 ∨
-    ty = .Float64T := sorry
+    ty = .Float64T := by
+  cases ty with
+  | WordT w => cases w <;> simp
+  | _ => simp

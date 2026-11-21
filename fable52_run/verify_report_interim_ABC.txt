@@ -1,0 +1,16 @@
+time: 2026-11-21T03:51:51Z
+build ok: True
+PROVED: 225 of 269
+own proof has no sorry (dependencies may still have): 225 of 269
+still sorry (directly or through a sorry dependency): 44
+statement text changed: []
+kernel type changed: []
+missing: []
+moved to another file: []
+non-standard axioms: []
+baseline definitions changed in kernel: [] (0)
+axiom declarations: []
+forbidden tokens: []
+per file (fully proved / total; own proof sorry-free): Evaluate.lean 3/3 (3), EvaluateProps.lean 22/22 (22), Misc.lean 14/14 (14), Mlstring.lean 7/7 (7), NamespaceProps.lean 49/49 (49), SemanticPrimitivesProps.lean 13/13 (13), TypeSound.lean 0/44 (0), TypeSysProps.lean 92/92 (92), Weakening.lean 25/25 (25)
+own proof still sorry: EVERY_LIST_REL_local EVERY_LIST_REL_thm EVERY_REPLICATE build_conv_type_sound build_tdefs_build_tenv check_ctor_tenv_dups check_dup_ctors_thm ctor_canonical_values_thm decs_type_sound decs_type_sound_no_check do_eq_Boolv eq_same_type exp_type_sound fst_triple has_lists_v_to_list lookup_var_sound op_type_sound opapp_type_sound pat_type_sound prim_canonical_Boolv_cases prim_canonical_Boolv_thm prim_canonical_values_thm remove_lambda_prod same_ctor_and_same_tid same_type_refl semantics_type_sound sing_list store_alloc_type_sound store_assign_type_sound store_type_extension_refl store_type_extension_trans store_type_extension_weakS type_all_env_extend type_e_con_check type_env_conv_thm type_funs_fst type_recfun_env type_recfun_env_help type_sound_invariant_union type_v_Boolv type_v_exn type_v_list_to_v type_v_list_to_v_APPEND v_unchanged
+unproved: EVERY_LIST_REL_local EVERY_LIST_REL_thm EVERY_REPLICATE build_conv_type_sound build_tdefs_build_tenv check_ctor_tenv_dups check_dup_ctors_thm ctor_canonical_values_thm decs_type_sound decs_type_sound_no_check do_eq_Boolv eq_same_type exp_type_sound fst_triple has_lists_v_to_list lookup_var_sound op_type_sound opapp_type_sound pat_type_sound prim_canonical_Boolv_cases prim_canonical_Boolv_thm prim_canonical_values_thm remove_lambda_prod same_ctor_and_same_tid same_type_refl semantics_type_sound sing_list store_alloc_type_sound store_assign_type_sound store_type_extension_refl store_type_extension_trans store_type_extension_weakS type_all_env_extend type_e_con_check type_env_conv_thm type_funs_fst type_recfun_env type_recfun_env_help type_sound_invariant_union type_v_Boolv type_v_exn type_v_list_to_v type_v_list_to_v_APPEND v_unchanged

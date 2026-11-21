@@ -354,6 +354,36 @@ end
 
 -- Theorem stubs
 
+theorem ev_attach_fst {α β : Type} (l : List (α × β)) :
+    List.map (fun x => match x with | ⟨x, _⟩ => x.fst) l.attach = List.map Prod.fst l := by
+  simp [List.map_attach_eq_pmap, List.pmap_eq_map]
+
+theorem ev_attach_fst3 {α β γ : Type} (l : List (α × β × γ)) :
+    List.map (fun x => match x with | ⟨x, _⟩ => match x with | (x, _, _) => x) l.attach
+      = List.map (fun x => match x with | (x, _, _) => x) l := by
+  simp [List.map_attach_eq_pmap, List.pmap_eq_map]
+
+theorem ev_clock_aux {ffi : Type} :
+    (∀ (st : cml_state ffi) (env : sem_env) (es : List exp), (evaluate st env es).1.clock ≤ st.clock) ∧
+    (∀ (st : cml_state ffi) (env : sem_env) (ds : List dec), (evaluate_decs st env ds).1.clock ≤ st.clock) ∧
+    (∀ (st : cml_state ffi) (env : sem_env) (val_ : v) (pes : List (pat × exp)) (err_v : v),
+      (evaluate_match st env val_ pes err_v).1.clock ≤ st.clock) := by
+  apply evaluate.mutual_induct_unfolding
+    (motive1 := fun st _ _ res => res.1.clock ≤ st.clock)
+    (motive2 := fun st _ _ res => res.1.clock ≤ st.clock)
+    (motive3 := fun st _ _ _ _ res => res.1.clock ≤ st.clock)
+  all_goals (
+    intros
+    repeat (first | (have hh := fix_clock_clock_le ‹fix_clock _ _ = (_, _)›; revert hh ‹fix_clock _ _ = (_, _)›))
+    intros
+    try dsimp only
+    first
+      | (simp_all [dec_clock, ev_attach_fst]; done)
+      | (simp_all [dec_clock, ev_attach_fst]; omega)
+      | (split <;> simp_all [ev_attach_fst3] <;> omega)
+      | ((repeat' split) <;> (first | (simp_all; done) | (simp_all; omega)))
+      )
+
 /- HOL4:
 Theorem evaluate_clock:
   (∀(s1:'ffi state) env e r s2. evaluate s1 env e = (s2,r) ⇒ s2.clock ≤ s1.clock) ∧
@@ -369,7 +399,17 @@ theorem evaluate_clock {ffi : Type} :
       evaluate_match s1 env val_ p v' = (s2, r) → s2.clock ≤ s1.clock) ∧
     (∀ (s1 : cml_state ffi) (env : sem_env) (ds : List dec) (s2 : cml_state ffi)
       (r : result sem_env v),
-      evaluate_decs s1 env ds = (s2, r) → s2.clock ≤ s1.clock) := sorry
+      evaluate_decs s1 env ds = (s2, r) → s2.clock ≤ s1.clock) := by
+  refine ⟨fun s1 env e s2 r h => ?_, fun s1 env val_ p v' s2 r h => ?_, fun s1 env ds s2 r h => ?_⟩
+  · have := ev_clock_aux.1 s1 env e; rw [h] at this; exact this
+  · have := ev_clock_aux.2.2 s1 env val_ p v'; rw [h] at this; exact this
+  · have := ev_clock_aux.2.1 s1 env ds; rw [h] at this; exact this
+theorem ev_fix_clock_id {ffi α : Type} (s : cml_state ffi) (p : cml_state ffi × α)
+    (h : p.1.clock ≤ s.clock) : fix_clock s p = p := by
+  obtain ⟨s', r⟩ := p
+  simp only at h
+  simp only [fix_clock, if_pos h]
+
 /- HOL4:
 Theorem fix_clock_evaluate:
    fix_clock s1 (evaluate s1 env e) = evaluate s1 env e ∧
@@ -378,11 +418,14 @@ Theorem fix_clock_evaluate:
 theorem fix_clock_evaluate {ffi : Type}
     (s1 : cml_state ffi) (env : sem_env) (e : List exp) (ds : List dec) :
     fix_clock s1 (evaluate s1 env e) = evaluate s1 env e ∧
-    fix_clock s1 (evaluate_decs s1 env ds) = evaluate_decs s1 env ds := sorry
+    fix_clock s1 (evaluate_decs s1 env ds) = evaluate_decs s1 env ds := ⟨ev_fix_clock_id _ _ (ev_clock_aux.1 s1 env e), ev_fix_clock_id _ _ (ev_clock_aux.2.1 s1 env ds)⟩
 /- HOL4:
 Theorem fix_clock_do_eval_res:
    fix_clock s (do_eval_res vs s) = do_eval_res vs s
 -/
 theorem fix_clock_do_eval_res {ffi : Type}
     (s : cml_state ffi) (vs : List v) :
-    fix_clock s (do_eval_res vs s) = do_eval_res vs s := sorry
+    fix_clock s (do_eval_res vs s) = do_eval_res vs s := by
+  apply ev_fix_clock_id
+  unfold do_eval_res
+  split <;> simp
