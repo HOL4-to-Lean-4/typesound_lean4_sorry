@@ -156,9 +156,39 @@ about the translation (item 5).
 Not covered by this check: a fresh statement-by-statement comparison of all 269 Lean statements
 and of the definitions with HOL4. That is the translation validation done before this run.
 
+## Definition mismatches against HOL4 (reported by a Gemini review, confirmed 21 Nov 2026)
+
+These concern the baseline definitions on `main` (`165e03b`), which the provers could not change.
+They do not affect the truth of the 269 theorems or the prover result. None is in the README's
+list of known differences. `DefinitionMismatchChecks.lean` holds kernel-checked examples
+(run with `lake env lean fable52_run/DefinitionMismatchChecks.lean`).
+
+1. **Integer division and modulo (`do_arith`, `IntT`, `Div`/`Mod`): wrong result for a negative
+   divisor.** The Lean definition uses `Int` `/` and `%`, which are Euclidean in Lean 4. HOL4's
+   `int_div` rounds toward minus infinity and `int_mod` is `i - i / j * j`
+   (`src/integer/integerScript.sml`). Lean gives `7 / -3 = -2`, `7 % -3 = 1`; HOL4 gives `-3` and
+   `-2`. The two agree when the divisor is positive or divides exactly. `Int.fdiv` and `Int.fmod`
+   are the matching Lean functions.
+2. **`Char`.** HOL4 `char` has 256 values; Lean `Char` is a Unicode scalar value. `char_to_word8`,
+   `chars_to_ws` and the FFI and `XorAw8Str` conversions reduce `ORD c` modulo 256, so
+   `Char.ofNat 955` and `Char.ofNat 187` give the same byte. On characters below 256 the Lean
+   definitions agree with HOL4.
+3. **Opaque `BEq` on `ast_t`, `pat`, `exp`, `dec`, `sem_t`.** `deriving BEq` on these nested types
+   produces `partial` functions, which are opaque constants in the kernel
+   (`instBEqSem_t.beq` and four more), so `x == x` is not provable for them. `v_beq` calls the
+   `exp` one for closures. A scan of every declaration that uses these instances shows: the
+   `sem_t` instance is unused; `==` on `v` is used in `check_type`, `the_Boolv`, `do_log`, `do_if`
+   (against `Boolv` constants, which never reach a closure) and in `do_eval` and
+   `compiler_agrees` (guarded by `concrete_v`, which excludes closures). So no definition's value
+   depends on the opaque part today. It is a latent defect.
+4. **`LazyList α := Nat → Option α` without downward closure.** The type contains sequences with
+   gaps, which are not HOL4 lazy lists; the source comment in `HOL4Prelude.lean` says the
+   invariant is not enforced. `semantics_prog` only takes the least upper bound of
+   `LazyList.fromList` prefixes, which is gap-free, so its meaning is unchanged.
+
 ## Files here
 
 `BRIEF.md` (the brief every prover got), `verify.py`, `Audit.lean`, `base_thms.tsv`, `base_defs.tsv`
 (baseline audit), `audit_transcript.py`, `monitor.sh`, `PROGRESS_ws*.tsv` (per-theorem log written
 by each prover), `agent_usage.tsv` (harness figures; its token column is not a cumulative count),
-`token_usage.json`, `sorry_tokens_over_time.tsv`, `verify_report_final.txt`, `compare_hol.py`.
+`token_usage.json`, `sorry_tokens_over_time.tsv`, `verify_report_final.txt`, `compare_hol.py`, `DefinitionMismatchChecks.lean`.
