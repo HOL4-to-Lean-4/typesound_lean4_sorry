@@ -129,7 +129,7 @@ about the translation (item 5).
    touches a statement or a definition.
 4. **`maxHeartbeats` for `do_app_cases`.** In HOL4 this theorem is computed (`SIMP_CONV` over
    `do_app_def`), so the script has no statement text. The Lean statement is the written-out
-   case expansion: 297 lines, one `↔` with 64 disjuncts. Proving it means case analysis over all
+   case expansion: 297 lines, one `↔` with 63 `∨` signs. Proving it means case analysis over all
    of `do_app`, which exceeds Lean's default step budget. Because it is an `↔` proved from the
    Lean `do_app`, it characterises the Lean `do_app` exactly; it can differ from HOL4's computed
    theorem only where the Lean `do_app` differs from HOL4's (README, known differences).
@@ -141,7 +141,7 @@ about the translation (item 5).
    `condefs.map fun (n, _) => n`. The two are equal, so the translation is correct, but it
    simplified the definition and the theorem became trivial.
 6. **`evaluate_length`** ends in `→ True` for `evaluate_decs`. HOL4 has `⇒ T` there too.
-7. **Helper definitions.** The provers added 17 definitions (`ste`, `bindR`, `op_res`, `res1`,
+7. **Helper definitions.** The provers added 18 definitions (`ste`, `bindR`, `op_res`, `res1`,
    `R1`, `envOK`, `M1`, `M3`, `dres`, `DR`, `DS`, `misc_keys`, six `icm_app*`), four tactic macros,
    one `attribute [local simp]` line and two `maxHeartbeats` lines. All have new names and state
    proof invariants. No canonical statement mentions them (kernel types equal the baseline).
