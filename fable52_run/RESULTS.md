@@ -108,9 +108,57 @@ No theorem was left unproved, none was reported as false, and no statement was c
 - `List.perm_ext_iff_of_nodup` was not available without a new import; prover A proved a
   replacement.
 
+## Check against the HOL4 sources (done after the run, by the orchestrating session)
+
+Question: do the friction items mean a theorem was changed or the translation is wrong? Answer:
+no theorem was changed, and the friction items are properties of Lean 4, with one observation
+about the translation (item 5).
+
+1. **Statements.** All 269 keep the baseline source text and kernel type (see Verification). The
+   top-level statements `semantics_type_sound` and `exp_type_sound` were also read side by side
+   with `hol4-ultramin/typeSoundScript.sml` and match clause for clause.
+2. **Induction on `type_p`, `type_e`, `type_d`.** These are mutual inductive relations in HOL4 too
+   (`type_p`/`type_ps`, `type_e`/`type_es`/`type_funs`, `type_d`/`type_ds`). HOL4's `Inductive`
+   generates one combined principle per group (`type_p_ind`, `type_e_ind`, `type_d_ind`), and the
+   HOL4 scripts use them 14 times. Lean 4's `induction` tactic does not accept mutual inductive
+   types, so the provers stated the same combined principles (`BAux.type_p_ind` and so on) and
+   proved them from Lean's generated recursors (`type_p.rec`, `type_ps.rec`). They are theorems
+   checked by the kernel, so they cannot add an assumption.
+3. **`cases ... with` name slots, `rfl` in place of `rw` for `match` terms.** Both concern how
+   Lean names constructor arguments and compiles `match` into auxiliary functions. Neither
+   touches a statement or a definition.
+4. **`maxHeartbeats` for `do_app_cases`.** In HOL4 this theorem is computed (`SIMP_CONV` over
+   `do_app_def`), so the script has no statement text. The Lean statement is the written-out
+   case expansion: 297 lines, one `↔` with 64 disjuncts. Proving it means case analysis over all
+   of `do_app`, which exceeds Lean's default step budget. Because it is an `↔` proved from the
+   Lean `do_app`, it characterises the Lean `do_app` exactly; it can differ from HOL4's computed
+   theorem only where the Lean `do_app` differs from HOL4's (README, known differences).
+5. **Proof-size comparison** (`compare_hol.py`): 268 of 269 theorems match a HOL4 theorem by name
+   (`type_v_exn` is a `val` in HOL4). HOL4 proofs total 3,925 lines. Theorems with a long HOL4
+   proof and a short Lean proof all go through helper lemmas, except one:
+   `check_dup_ctors_thm` is `rfl` in Lean, 11 lines in HOL4. HOL4 defines `check_dup_ctors` with
+   `FOLDR (λ(n,ts) x2. if T then n::x2 else x2) [] condefs`; the Lean definition already says
+   `condefs.map fun (n, _) => n`. The two are equal, so the translation is correct, but it
+   simplified the definition and the theorem became trivial.
+6. **`evaluate_length`** ends in `→ True` for `evaluate_decs`. HOL4 has `⇒ T` there too.
+7. **Helper definitions.** The provers added 17 definitions (`ste`, `bindR`, `op_res`, `res1`,
+   `R1`, `envOK`, `M1`, `M3`, `dres`, `DR`, `DS`, `misc_keys`, six `icm_app*`), four tactic macros,
+   one `attribute [local simp]` line and two `maxHeartbeats` lines. All have new names and state
+   proof invariants. No canonical statement mentions them (kernel types equal the baseline).
+   `DAux.ste` repeats `store_type_extension` word for word, because that definition lives in
+   `TypeSound.lean`, which the helper files cannot import.
+8. **Induction scheme of the main theorems.** HOL4 proves `exp_type_sound` with `evaluate_ind`
+   and `decs_type_sound` with `evaluate_decs_ind`. The Lean proofs use strong induction on the
+   clock and `sizeOf` (the termination measure of `evaluate`) and mutual recursion over
+   `type_d`/`type_ds`. `is_clock_io_mono_evaluate` uses `evaluate.mutual_induct`, Lean's
+   counterpart of `full_evaluate_ind`.
+
+Not covered by this check: a fresh statement-by-statement comparison of all 269 Lean statements
+and of the definitions with HOL4. That is the translation validation done before this run.
+
 ## Files here
 
 `BRIEF.md` (the brief every prover got), `verify.py`, `Audit.lean`, `base_thms.tsv`, `base_defs.tsv`
 (baseline audit), `audit_transcript.py`, `monitor.sh`, `PROGRESS_ws*.tsv` (per-theorem log written
 by each prover), `agent_usage.tsv` (harness figures; its token column is not a cumulative count),
-`token_usage.json`, `sorry_tokens_over_time.tsv`, `verify_report_final.txt`.
+`token_usage.json`, `sorry_tokens_over_time.tsv`, `verify_report_final.txt`, `compare_hol.py`.
