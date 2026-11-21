@@ -1,0 +1,44 @@
+2026-11-21T03:26:19Z	fst_triple	proved	via DAux1 helper
+2026-11-21T03:26:19Z	sing_list	proved	via DAux1 helper
+2026-11-21T03:26:19Z	EVERY_LIST_REL_local	proved	via DAux1 helper
+2026-11-21T03:26:19Z	v_unchanged	proved	via DAux1 helper
+2026-11-21T03:26:19Z	check_dup_ctors_thm	proved	via DAux1 helper
+2026-11-21T03:26:19Z	prim_canonical_values_thm	proved	via DAux1 helper
+2026-11-21T03:26:19Z	has_lists_v_to_list	proved	via DAux1 helper
+2026-11-21T03:26:19Z	ctor_canonical_values_thm	proved	via DAux1 helper
+2026-11-21T03:26:19Z	same_type_refl	proved	via DAux1 helper
+2026-11-21T03:26:19Z	eq_same_type	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_env_conv_thm	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_funs_fst	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_recfun_env_help	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_recfun_env	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_v_exn	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_v_Boolv	proved	via DAux1 helper
+2026-11-21T03:26:19Z	remove_lambda_prod	proved	via DAux1 helper
+2026-11-21T03:26:19Z	opapp_type_sound	proved	via DAux1 helper
+2026-11-21T03:26:19Z	store_type_extension_weakS	proved	via DAux1 helper
+2026-11-21T03:26:19Z	store_type_extension_refl	proved	via DAux1 helper
+2026-11-21T03:26:19Z	store_type_extension_trans	proved	via DAux1 helper
+2026-11-21T03:26:19Z	store_assign_type_sound	proved	via DAux1 helper
+2026-11-21T03:26:19Z	store_alloc_type_sound	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_v_list_to_v	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_v_list_to_v_APPEND	proved	via DAux1 helper
+2026-11-21T03:26:19Z	do_eq_Boolv	proved	via DAux1 helper
+2026-11-21T03:26:19Z	prim_canonical_Boolv_thm	proved	via DAux1 helper
+2026-11-21T03:26:19Z	prim_canonical_Boolv_cases	proved	via DAux1 helper
+2026-11-21T03:26:19Z	build_conv_type_sound	proved	via DAux1 helper
+2026-11-21T03:26:19Z	same_ctor_and_same_tid	proved	via DAux1 helper
+2026-11-21T03:26:19Z	lookup_var_sound	proved	via DAux1 helper
+2026-11-21T03:26:19Z	EVERY_REPLICATE	proved	via DAux1 helper
+2026-11-21T03:26:19Z	EVERY_LIST_REL_thm	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_sound_invariant_union	proved	via DAux1 helper
+2026-11-21T03:26:19Z	check_ctor_tenv_dups	proved	via DAux1 helper
+2026-11-21T03:26:19Z	type_all_env_extend	proved	via DAux1 helper
+2026-11-21T03:28:49Z	pat_type_sound	proved	mutual structural recursion over typing derivations (DAux1)
+2026-11-21T03:28:49Z	type_e_con_check	proved	mutual structural recursion over typing derivations (DAux1)
+2026-11-21T03:39:36Z	op_type_sound	proved	via DAux2 (per-op lemmas, type_op_cases_thm dispatch)
+2026-11-21T03:49:39Z	exp_type_sound	proved	via DAux3 (clean evaluate equations, per-expression lemmas, strong induction on clock and size)
+2026-11-21T03:53:21Z	build_tdefs_build_tenv	proved	via DAux4 (FUPDATE_LIST lemmas, induction on tds)
+2026-11-21T04:01:22Z	decs_type_sound_no_check	proved	mutual induction on type_d/type_ds (DAux4 pd_main/pds_main), any chk
+2026-11-21T04:01:22Z	decs_type_sound	proved	same pds_main
+2026-11-21T04:01:22Z	semantics_type_sound	proved	from pds_main with clock-updated state

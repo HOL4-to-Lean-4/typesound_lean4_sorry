@@ -2,3 +2,4 @@ agent	files	theorems_owned	finished_utc	duration_s	subagent_tokens	tool_uses	sel
 C	Weakening	25	2026-11-21T03:06Z	305	189068	26	25
 B	TypeSysProps	92	2026-11-21T03:31Z	1783	380999	67	92
 A	Misc,Mlstring,NamespaceProps,Evaluate,EvaluateProps,SemanticPrimitivesProps	108	2026-11-21T03:48Z	2819	175237	111	108
+D	TypeSound	44	2026-11-21T04:03Z	3738	93345	146	44

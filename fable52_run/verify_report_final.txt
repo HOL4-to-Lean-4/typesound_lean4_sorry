@@ -1,0 +1,16 @@
+time: 2026-11-21T04:10:20Z
+build ok: True
+PROVED: 269 of 269
+own proof has no sorry (dependencies may still have): 269 of 269
+still sorry (directly or through a sorry dependency): 0
+statement text changed: []
+kernel type changed: []
+missing: []
+moved to another file: []
+non-standard axioms: []
+baseline definitions changed in kernel: [] (0)
+axiom declarations: []
+forbidden tokens: []
+per file (fully proved / total; own proof sorry-free): Evaluate.lean 3/3 (3), EvaluateProps.lean 22/22 (22), Misc.lean 14/14 (14), Mlstring.lean 7/7 (7), NamespaceProps.lean 49/49 (49), SemanticPrimitivesProps.lean 13/13 (13), TypeSound.lean 44/44 (44), TypeSysProps.lean 92/92 (92), Weakening.lean 25/25 (25)
+own proof still sorry: 
+unproved: 

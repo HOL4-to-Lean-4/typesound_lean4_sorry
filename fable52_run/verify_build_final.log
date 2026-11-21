@@ -1,0 +1,206 @@
+⚠ [11/34] Replayed LeanTypeSound.Mlstring
+warning: LeanTypeSound/Mlstring.lean:257:17: `String.data` has been deprecated: Use `String.toList` instead
+warning: LeanTypeSound/Mlstring.lean:258:52: `String.data` has been deprecated: Use `String.toList` instead
+warning: LeanTypeSound/Mlstring.lean:260:82: `String.data` has been deprecated: Use `String.toList` instead
+warning: LeanTypeSound/Mlstring.lean:266:53: `String.data` has been deprecated: Use `String.toList` instead
+warning: LeanTypeSound/Mlstring.lean:273:30: `String.data` has been deprecated: Use `String.toList` instead
+warning: LeanTypeSound/Mlstring.lean:283:28: `String.data` has been deprecated: Use `String.toList` instead
+warning: LeanTypeSound/Mlstring.lean:401:72: `String.data` has been deprecated: Use `String.toList` instead
+warning: LeanTypeSound/Mlstring.lean:404:53: `String.data` has been deprecated: Use `String.toList` instead
+⚠ [16/34] Replayed LeanTypeSound.SemanticPrimitives
+warning: LeanTypeSound/SemanticPrimitives.lean:1128:51: `String.mk` has been deprecated: Use `String.ofList` instead
+warning: LeanTypeSound/SemanticPrimitives.lean:1147:54: `String.mk` has been deprecated: Use `String.ofList` instead
+warning: LeanTypeSound/SemanticPrimitives.lean:1173:63: `String.mk` has been deprecated: Use `String.ofList` instead
+⚠ [17/34] Replayed LeanTypeSound.Evaluate
+warning: LeanTypeSound/Evaluate.lean:383:29: This simp argument is unused:
+  ev_attach_fst3
+
+Hint: Omit it from the simp argument list.
+  simp_all ̵[̵e̵v̵_̵a̵t̵t̵a̵c̵h̵_̵f̵s̵t̵3̵]̵
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [18/34] Replayed LeanTypeSound.NamespaceProps
+warning: LeanTypeSound/NamespaceProps.lean:132:84: unused variable `f`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [20/34] Replayed LeanTypeSound.EvaluateProps
+warning: LeanTypeSound/EvaluateProps.lean:1231:8: unused variable `st`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/EvaluateProps.lean:1231:29: unused variable `env`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/EvaluateProps.lean:1231:45: unused variable `ds`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [25/34] Replayed LeanTypeSound.TypeSysProps
+warning: LeanTypeSound/TypeSysProps.lean:386:69: unused variable `n`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:416:69: unused variable `n`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:416:79: unused variable `tvs''`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:501:26: This simp argument is unused:
+  deBruijn_inc
+
+Hint: Omit it from the simp argument list.
+  simp [deBruijn_subst,̵ ̵d̵e̵B̵r̵u̵i̵j̵n̵_̵i̵n̵c̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: LeanTypeSound/TypeSysProps.lean:514:63: unused variable `tvs'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:547:7: unused variable `t_`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:547:39: unused variable `tvs'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:626:59: unused variable `tvs'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:630:65: unused variable `tvs'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:786:59: unused variable `tvs'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:786:64: unused variable `tvs''`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:790:65: unused variable `tvs'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:790:70: unused variable `tvs''`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:1819:7: unused variable `tenv_val_`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:1970:23: This simp argument is unused:
+  hf
+
+Hint: Omit it from the simp argument list.
+  simp_all [type_op, hf,̵ ̵h̵f̵t, Tfn, Tref, Tbool, Tint, Tchar, Tstring, Tword8, Tword64,
+  ̵  ̵ ̵ ̵ ̵ ̵Tword8array,
+  ̲  ̲ ̲ ̲ ̲ ̲Tdouble, Ttup, Tlist, Tvector, Tarray]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: LeanTypeSound/TypeSysProps.lean:1970:27: This simp argument is unused:
+  hft
+
+Hint: Omit it from the simp argument list.
+  simp_all [type_op, hf, h̵f̵t̵,̵ ̵Tfn, Tref, Tbool, Tint, Tchar, Tstring, Tword8, Tword64,
+  ̵  ̵ ̵ ̵ ̵ ̵Tword8array,
+  ̲  ̲ ̲ ̲ ̲ ̲Tdouble, Ttup, Tlist, Tvector, Tarray]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: LeanTypeSound/TypeSysProps.lean:1971:19: This simp argument is unused:
+  Tdouble
+
+Hint: Omit it from the simp argument list.
+  simp_all [type_op, hf, hft, Tfn, Tref, Tbool, Tint, Tchar, Tstring, Tword8, Tword64,
+        Tword8array, Td̵o̵u̵b̵l̵e̵,̵ ̵T̵tup, Tlist, Tvector, Tarray]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: LeanTypeSound/TypeSysProps.lean:2320:40: unused variable `tvs`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:2374:19: unused variable `env`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:2375:40: unused variable `e`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:2405:7: unused variable `tvs`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:2464:40: unused variable `targs'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSysProps.lean:2590:24: unused variable `cn`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [26/34] Replayed LeanTypeSound.Weakening
+warning: LeanTypeSound/Weakening.lean:532:19: unused variable `i`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [28/34] Replayed LeanTypeSound.DAux1
+warning: LeanTypeSound/DAux1.lean:609:89: unused variable `ti`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux1.lean:611:13: unused variable `cn'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux1.lean:726:49: unused variable `cns`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux1.lean:731:56: unused variable `cns`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux1.lean:815:7: unused variable `fn_`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux1.lean:1347:10: This simp argument is unused:
+  h
+
+Hint: Omit it from the simp argument list.
+  simp ̵[̵h̵]̵
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [29/34] Replayed LeanTypeSound.DAux2
+warning: LeanTypeSound/DAux2.lean:529:62: unused variable `he`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux2.lean:557:62: unused variable `he`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [30/34] Replayed LeanTypeSound.DAux3
+warning: LeanTypeSound/DAux3.lean:717:16: unused variable `hg`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [31/34] Replayed LeanTypeSound.DAux4
+warning: LeanTypeSound/DAux4.lean:929:24: unused variable `chk`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux4.lean:929:40: unused variable `st`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux4.lean:929:43: unused variable `env`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux4.lean:929:47: unused variable `st'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux4.lean:929:51: unused variable `r`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux4.lean:929:53: unused variable `c`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux4.lean:929:55: unused variable `s`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/DAux4.lean:930:25: unused variable `chk`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [32/34] Replayed LeanTypeSound.TypeSound
+warning: LeanTypeSound/TypeSound.lean:222:49: unused variable `cns`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSound.lean:227:56: unused variable `cns`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSound.lean:246:89: unused variable `ti`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSound.lean:248:13: unused variable `cn'`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: LeanTypeSound/TypeSound.lean:281:7: unused variable `fn_`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Build completed successfully (34 jobs).

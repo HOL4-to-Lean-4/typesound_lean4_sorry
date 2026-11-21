@@ -1,5 +1,10 @@
 # CakeML type soundness in Lean 4: benchmark version (all proofs `sorry`)
 
+> **Branch `claude/fable52-autoprove`.** This branch is not the benchmark input. It holds the output of a
+> clean-room run on 21 Nov 2026 in which Claude Fable 5.2 proved all 269 theorems starting from
+> commit `165e03b`. See [`fable52_run/RESULTS.md`](fable52_run/RESULTS.md). The text below describes the
+> benchmark input on `main`.
+
 Benchmark input for automatic provers. It holds the corrected Lean 4 translation
 of the CakeML type soundness closure with the 269 canonical theorems stated and
 every proof left as `sorry`. A prover's task is to replace the 269 `sorry`s.

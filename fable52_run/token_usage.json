@@ -1,0 +1,38 @@
+{
+ "A": {
+  "api_responses": 106,
+  "input_tokens": 212,
+  "cache_creation_input_tokens": 502605,
+  "cache_read_input_tokens": 20931743,
+  "output_tokens": 204816,
+  "first": "2026-11-21T03:01:26.097Z",
+  "last": "2026-11-21T03:48:24.649Z"
+ },
+ "B": {
+  "api_responses": 63,
+  "input_tokens": 126,
+  "cache_creation_input_tokens": 379107,
+  "cache_read_input_tokens": 15586368,
+  "output_tokens": 173652,
+  "first": "2026-11-21T03:01:26.117Z",
+  "last": "2026-11-21T03:31:09.064Z"
+ },
+ "C": {
+  "api_responses": 23,
+  "input_tokens": 46,
+  "cache_creation_input_tokens": 187500,
+  "cache_read_input_tokens": 3104454,
+  "output_tokens": 31669,
+  "first": "2026-11-21T03:01:26.136Z",
+  "last": "2026-11-21T03:06:31.246Z"
+ },
+ "D": {
+  "api_responses": 142,
+  "input_tokens": 284,
+  "cache_creation_input_tokens": 981872,
+  "cache_read_input_tokens": 30969520,
+  "output_tokens": 298375,
+  "first": "2026-11-21T03:01:26.159Z",
+  "last": "2026-11-21T04:03:43.964Z"
+ }
+}
